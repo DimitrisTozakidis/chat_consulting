@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:untitled3/pages/article_list_screen.dart';
+import 'package:top_snackbar_flutter/tap_bounce_container.dart';
+import 'package:untitled3/snack_bar.dart';
 import 'package:untitled3/type_of_connection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import 'auth.dart';
 import 'models/user_custom.dart';
@@ -49,11 +51,19 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       setState(() {
         errorMessage = e.message;
       });
+      showTopSnackBar(
+        Overlay.of(context),
+        const CustomSnackBar.error(
+          message: 'Good job, your release is successful. Have a nice day',
+        ),
+      );
     }
   }
 
   Widget _errorMessage() {
-    return Text(errorMessage == '' ? '' : 'Emm ? $errorMessage');
+    return const CustomSnackBar.error(
+      message: 'Good job, your release is successful. Have a nice day',
+    );
   }
 
   @override
@@ -172,7 +182,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Enter the following details to register',
+                                      _typeOfConnection == 1 ? 'Enter the following details to register' : 'Enter the following details to login',
                                       style: TextStyle(color: Colors.black, fontSize: 20),
                                     ),
                                     SizedBox(
@@ -183,6 +193,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                       height: 8,
                                     ),
                                     TextField(
+                                      textInputAction: TextInputAction.next,
                                       controller: _nameController,
                                       decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Username'),
                                       onChanged: (query) {},
@@ -198,6 +209,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                             //   FilteringTextInputFormatter.allow(RegExp(r'[0-9-,.]')),
                                             //   DecimalTextInputFormatter(),
                                             // ],
+                                            textInputAction: TextInputAction.next,
                                             controller: _emailController,
                                             decoration:
                                                 InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Enter your Email'),
@@ -209,6 +221,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                         ],
                                       ),
                                     TextField(
+                                      textInputAction: TextInputAction.done,
                                       controller: _passwordController,
                                       decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Password'),
                                       onChanged: (query) {},
@@ -226,7 +239,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                               ),
                                             ),
                                             backgroundColor: MaterialStateProperty.all<Color>(_typeOfConnection == 0 ? Colors.orange : Colors.pink)),
-                                        onPressed: _typeOfConnection == 1 ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
+                                        onPressed: _typeOfConnection == 0 ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
                                         //   {
                                         //   final String name = _nameController.text;
                                         //   final String email = _emailController.text;
@@ -246,6 +259,23 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                         //   );
                                         //
                                         // },
+                                        child: Text(
+                                          'Enter',
+                                          style: TextStyle(color: Colors.black, fontSize: 20),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: double.infinity,
+                                      child: TapBounceContainer(
+                                        onTap: () {
+                                          showTopSnackBar(
+                                            Overlay.of(context),
+                                            const CustomSnackBar.error(
+                                              message: 'Good job, your release is successful. Have a nice day',
+                                            ),
+                                          );
+                                        },
                                         child: Text(
                                           'Enter',
                                           style: TextStyle(color: Colors.black, fontSize: 20),
