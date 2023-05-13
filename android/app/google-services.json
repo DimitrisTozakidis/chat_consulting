@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1096515087253",
+    "project_id": "consulting-chat",
+    "storage_bucket": "consulting-chat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096515087253:android:889e4d35f513bb92f4e49c",
+        "android_client_info": {
+          "package_name": "com.example.chat_consulting"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1096515087253-4lijb6rr869n0t0c4mu1ecj12munukk0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtdDdlOkv7tkwgXKlLxe3zPhsJXuH408g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1096515087253-4lijb6rr869n0t0c4mu1ecj12munukk0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
