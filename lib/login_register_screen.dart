@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:top_snackbar_flutter/tap_bounce_container.dart';
 import 'package:untitled3/snack_bar.dart';
 import 'package:untitled3/type_of_connection.dart';
@@ -8,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import 'auth.dart';
+import 'messenger/messages_ui.dart';
 import 'models/user_custom.dart';
 
 class LoginRegisterScreen extends StatefulWidget {
@@ -34,15 +36,42 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     await Auth().signOut();
   }
 
-  Future<void> signInWithEmailAndPassword() async {
+  Future<void> signInWithEmailAndPassword(BuildContext context) async {
     try {
-      await Auth().signInWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
+      // Sign in with email and password
+      await Auth().signInWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      // Navigate to MessengerScreen on successful sign-in
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MessagesScreen()),
+      );
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
       });
+      String message;
+      if (e.code == 'user-not-found') {
+        message = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Wrong password provided for that user.';
+      } else if (e.code == 'invalid-email') {
+        message = 'The email address is not valid.';
+      } else {
+        message = 'An error occurred while signing in.';
+      }
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(
+          message: message,
+        ),
+      );
     }
   }
+
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
@@ -51,20 +80,25 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       setState(() {
         errorMessage = e.message;
       });
+      String message;
+      if (e.code == 'weak-password') {
+        message = 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'The account already exists for that email.';
+      } else if (e.code == 'invalid-email') {
+        message = 'The email address is not valid.';
+      } else {
+        message = 'An error occurred while creating the account.';
+      }
       showTopSnackBar(
         Overlay.of(context),
-        const CustomSnackBar.error(
-          message: 'Good job, your release is successful. Have a nice day',
+         CustomSnackBar.error(
+          message: message,
         ),
       );
     }
   }
 
-  Widget _errorMessage() {
-    return const CustomSnackBar.error(
-      message: 'Good job, your release is successful. Have a nice day',
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,51 +158,60 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(left: 60.0, top: 96.0),
-                                child: Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: _typeOfConnection == 0
-                                          ? null
-                                          : () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => LoginRegisterScreen(
-                                                    typeOfConnection: TypeOfConnection.login.label,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                      child: Text(
-                                        'Sign in',
-                                        style: TextStyle(color: Colors.white, fontSize: _typeOfConnection == 0 ? 35 : 20),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 16.0,
-                                    ),
-                                    GestureDetector(
-                                      onTap: _typeOfConnection == 1
-                                          ? null
-                                          : () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) => LoginRegisterScreen(
-                                                          typeOfConnection: TypeOfConnection.register.label,
-                                                        )),
-                                              );
-                                            },
-                                      child: Text(
-                                        'Sign up',
-                                        style: TextStyle(color: Colors.white, fontSize: _typeOfConnection == 1 ? 35 : 20),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                // child: Row(
+                                //   children: [
+                                //     GestureDetector(
+                                //       onTap: _typeOfConnection == 0
+                                //           ? null
+                                //           : () {
+                                //               Navigator.push(
+                                //                 context,
+                                //                 MaterialPageRoute(
+                                //                   builder: (context) => LoginRegisterScreen(
+                                //                     typeOfConnection: TypeOfConnection.login.label,
+                                //                   ),
+                                //                 ),
+                                //               );
+                                //             },
+                                //       child: Text(
+                                //         'Sign in',
+                                //         style: TextStyle(color: Colors.white, fontSize: _typeOfConnection == 0 ? 35 : 20),
+                                //       ),
+                                //     ),
+                                //     SizedBox(
+                                //       width: 16.0,
+                                //     ),
+                                //     GestureDetector(
+                                //       onTap: _typeOfConnection == 1
+                                //           ? null
+                                //           : () {
+                                //               Navigator.push(
+                                //                 context,
+                                //                 MaterialPageRoute(
+                                //                     builder: (context) => LoginRegisterScreen(
+                                //                           typeOfConnection: TypeOfConnection.register.label,
+                                //                         )),
+                                //               );
+                                //             },
+                                //       child: Text(
+                                //         'Sign up',
+                                //         style: TextStyle(color: Colors.white, fontSize: _typeOfConnection == 1 ? 35 : 20),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
                               ),
                               //StreamBuilder(stream: Firestore.instance.collection('users').snapshots(), builder: (BuildContext context, snapshot) {  },),
-
+                              Padding(
+                                padding: const EdgeInsets.only(right: 24.0),
+                                child: Container(
+                                    decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
+                                    child: SvgPicture.asset(
+                                      color: _typeOfConnection == 1 ? Colors.pink : Colors.orange,
+                                      "assets/chatcommunication.svg",
+                                      height: 120,
+                                    )),
+                              ),
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
                                 width: double.infinity,
@@ -192,6 +235,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                     SizedBox(
                                       height: 8,
                                     ),
+                                    if (_typeOfConnection == 1)
                                     TextField(
                                       textInputAction: TextInputAction.next,
                                       controller: _nameController,
@@ -201,7 +245,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                     SizedBox(
                                       height: 16,
                                     ),
-                                    if (_typeOfConnection == 1)
                                       Column(
                                         children: [
                                           TextField(
@@ -222,6 +265,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                       ),
                                     TextField(
                                       textInputAction: TextInputAction.done,
+                                      obscureText: true,
                                       controller: _passwordController,
                                       decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Password'),
                                       onChanged: (query) {},
@@ -239,7 +283,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                               ),
                                             ),
                                             backgroundColor: MaterialStateProperty.all<Color>(_typeOfConnection == 0 ? Colors.orange : Colors.pink)),
-                                        onPressed: _typeOfConnection == 0 ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
+                                        onPressed: _typeOfConnection == 0 ? () => signInWithEmailAndPassword(context) : createUserWithEmailAndPassword,
                                         //   {
                                         //   final String name = _nameController.text;
                                         //   final String email = _emailController.text;
@@ -259,23 +303,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                         //   );
                                         //
                                         // },
-                                        child: Text(
-                                          'Enter',
-                                          style: TextStyle(color: Colors.black, fontSize: 20),
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      width: double.infinity,
-                                      child: TapBounceContainer(
-                                        onTap: () {
-                                          showTopSnackBar(
-                                            Overlay.of(context),
-                                            const CustomSnackBar.error(
-                                              message: 'Good job, your release is successful. Have a nice day',
-                                            ),
-                                          );
-                                        },
                                         child: Text(
                                           'Enter',
                                           style: TextStyle(color: Colors.black, fontSize: 20),

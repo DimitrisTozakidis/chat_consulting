@@ -40,7 +40,7 @@ class _OpeningScreenState extends State<OpeningScreen> {
           Column(
             children: [
               SizedBox(
-                height: 200,
+                height: 156,
               ),
               Container(
                   decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(15)),
@@ -97,10 +97,13 @@ class _OpeningScreenState extends State<OpeningScreen> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        _typeOfConnection= TypeOfConnection.login;
+                        _typeOfConnection = TypeOfConnection.login;
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => LoginRegisterScreen(typeOfConnection: _typeOfConnection.label,)),
+                          MaterialPageRoute(
+                              builder: (context) => LoginRegisterScreen(
+                                    typeOfConnection: _typeOfConnection.label,
+                                  )),
                         );
                       },
                       child: Container(
@@ -127,10 +130,13 @@ class _OpeningScreenState extends State<OpeningScreen> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        _typeOfConnection= TypeOfConnection.register;
+                        _typeOfConnection = TypeOfConnection.register;
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => LoginRegisterScreen(typeOfConnection: _typeOfConnection.label,)),
+                          MaterialPageRoute(
+                              builder: (context) => LoginRegisterScreen(
+                                    typeOfConnection: _typeOfConnection.label,
+                                  )),
                         );
                       },
                       child: Container(
