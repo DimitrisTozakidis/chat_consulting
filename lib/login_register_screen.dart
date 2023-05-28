@@ -9,7 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import 'auth.dart';
-import 'messenger/messages_ui.dart';
+import 'messenger/pages/messages_ui.dart';
 import 'models/user_custom.dart';
 
 class LoginRegisterScreen extends StatefulWidget {
