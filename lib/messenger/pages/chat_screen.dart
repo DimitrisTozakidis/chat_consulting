@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:untitled3/type_of_connection.dart';
 
@@ -20,6 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final Message four = Message(text: 'I know daa', mine: true, time: DateTime(2012, 1, 1, 12, 3));
   final Message five = Message(text: "You 're kavla", mine: false, time: DateTime(2012, 1, 1, 12, 2));
   final Message six = Message(text: 'I know daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', mine: true, time: DateTime(2012, 1, 1, 12, 3));
+  final String id = ''; //to id tou xristi prepeina mpei edo
 
   final _textController = TextEditingController();
 
@@ -32,6 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
+    print(FirebaseAuth.instance.currentUser!.uid);
     super.initState();
     messages.add(one);
     messages.add(two);
@@ -41,9 +45,11 @@ class _ChatScreenState extends State<ChatScreen> {
     messages.add(six);
   }
 
+  late String roomId;
+
   @override
   Widget build(BuildContext context) {
-    TypeOfConnection _typeOfConnection;
+    final firestore = FirebaseFirestore.instance;
 
     // 1
     return Scaffold(
@@ -78,90 +84,121 @@ class _ChatScreenState extends State<ChatScreen> {
                   SizedBox(
                     width: double.infinity,
                     height: MediaQuery.of(context).size.height * 9 / 12 - 48,
-                    child: ListView.separated(
-                      itemCount: messages.length,
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (index == 0 || messages[index].time != messages[index - 1].time)
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    width: MediaQuery.of(context).size.width / 5,
-                                  ),
-                                  Text(
-                                    DateFormat('HH:mm').format(messages[index].time),
-                                    style: TextStyle(fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                            if (messages[index].mine == false)
-                              Row(
-                                children: [
-                                  if ((index + 1) == messages.length || messages[index + 1].mine != false)
-                                    Container(
-                                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
-                                        height: MediaQuery.of(context).size.width * 1 / 8,
-                                        width: MediaQuery.of(context).size.width * 1 / 8),
-                                  SizedBox(width: ((index + 1) == messages.length || messages[index + 1].mine != false) ? 24 : 72),
-                                  Flexible(
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: EdgeInsets.all(24),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade300,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Text(messages[index].text),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            if (messages[index].mine == true)
-                              Row(
-                                children: [
-                                  SizedBox(width: 72),
-                                  Flexible(
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: EdgeInsets.all(24),
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFF4622fe),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Text(
-                                        messages[index].text,
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            if ((index + 1) == messages.length || messages[index].mine != messages[index + 1].mine)
-                              SizedBox(
-                                height: 48,
-                              )
-                          ],
-                        );
-                      },
-                      separatorBuilder: (BuildContext context, int index) {
-                        return const SizedBox(height: 8);
-                      },
-                    ),
+                    child: StreamBuilder(
+                        stream: firestore.collection('messages').snapshots(),
+                        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                          if (snapshot.hasData) {
+                            if (snapshot.data!.docs.isNotEmpty) {
+                              List<QueryDocumentSnapshot?> allData = snapshot.data!.docs
+                                  .where((element) => element['users'].contains(id) && element['users'].contains(FirebaseAuth.instance.currentUser!.uid))
+                                  .toList();
+                              QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
+                              if (data != null) {
+                                setState(() {
+                                  roomId = data.id;
+                                });
+                              }
+                              return data == null
+                                  ? Container()
+                                  : ListView.separated(
+                                      itemCount: messages.length,
+                                      scrollDirection: Axis.vertical,
+                                      shrinkWrap: true,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            if (index == 0 || messages[index].time != messages[index - 1].time)
+                                              Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: MediaQuery.of(context).size.width / 5,
+                                                  ),
+                                                  Text(
+                                                    DateFormat('HH:mm').format(messages[index].time),
+                                                    style: TextStyle(fontSize: 15),
+                                                  ),
+                                                ],
+                                              ),
+                                            if (messages[index].mine == false)
+                                              Row(
+                                                children: [
+                                                  if ((index + 1) == messages.length || messages[index + 1].mine != false)
+                                                    Container(
+                                                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
+                                                        height: MediaQuery.of(context).size.width * 1 / 8,
+                                                        width: MediaQuery.of(context).size.width * 1 / 8),
+                                                  SizedBox(width: ((index + 1) == messages.length || messages[index + 1].mine != false) ? 24 : 72),
+                                                  Flexible(
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      padding: EdgeInsets.all(24),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey.shade300,
+                                                        borderRadius: BorderRadius.circular(16),
+                                                      ),
+                                                      child: Text(messages[index].text),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            if (messages[index].mine == true)
+                                              Row(
+                                                children: [
+                                                  SizedBox(width: 72),
+                                                  Flexible(
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      padding: EdgeInsets.all(24),
+                                                      decoration: BoxDecoration(
+                                                        color: Color(0xFF4622fe),
+                                                        borderRadius: BorderRadius.circular(16),
+                                                      ),
+                                                      child: Text(
+                                                        messages[index].text,
+                                                        style: TextStyle(color: Colors.white),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            if ((index + 1) == messages.length || messages[index].mine != messages[index + 1].mine)
+                                              SizedBox(
+                                                height: 48,
+                                              )
+                                          ],
+                                        );
+                                      },
+                                      separatorBuilder: (BuildContext context, int index) {
+                                        return const SizedBox(height: 8);
+                                      },
+                                    );
+                            } else {
+                              return Center(
+                                child: Text('No conversation found'),
+                              );
+                            }
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(color: Colors.blue),
+                            );
+                          }
+                        }),
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: MediaQuery.of(context).size.width- 100,
+                        width: MediaQuery.of(context).size.width - 100,
                         child: TextField(
                           textInputAction: TextInputAction.done,
                           controller: _textController,
-                          decoration: InputDecoration(filled: true,
-                            fillColor: Colors.grey.shade300,  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Type a message...',),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.grey.shade300,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                            hintText: 'Type a message...',
+                          ),
                           onChanged: (query) {},
                         ),
                       ),
@@ -169,6 +206,33 @@ class _ChatScreenState extends State<ChatScreen> {
                         icon: const Icon(Icons.send),
                         tooltip: 'Increase volume by 10',
                         onPressed: () {
+                          if (_textController.text.toString() != '') {
+                            if ('eVhXpioFvSjWvP3qgIer' != null) {
+                              Map<String, dynamic> data = {
+                                'message': _textController.text.trim(),
+                                'sent_by': FirebaseAuth.instance.currentUser!.uid,
+                                'datetime': DateTime.now(),
+                              };
+                              firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').doc('eVhXpioFvSjWvP3qgIer').update({
+                                'last_message_time': DateTime.now(),
+                                'last_message': _textController.text,
+                              });
+                              firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').doc('eVhXpioFvSjWvP3qgIer').collection('Messages').add(data);
+                            } else {
+                              Map<String, dynamic> data = {
+                                'message': _textController.text.trim(),
+                                'sent_by': FirebaseAuth.instance.currentUser!.uid,
+                                'datetime': DateTime.now(),
+                              };
+                              firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').add({
+                                'last_message': _textController.text,
+                                'last_message_time': DateTime.now(),
+                              }).then((value) async {
+                                value.collection('Messages').add(data);
+                              });
+                            }
+                          }
+                          _textController.clear();
                         },
                       ),
                     ],
