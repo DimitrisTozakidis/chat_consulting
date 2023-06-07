@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 @JsonSerializable()
@@ -11,5 +10,5 @@ class Message {
 
   String text;
   bool mine;
-  DateTime time;
+  String time;
 }

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/blocs/tags_state.dart';
+import 'package:untitled3/articles/blocs/tags_state.dart';
 
 import '../models/tag.dart';
 

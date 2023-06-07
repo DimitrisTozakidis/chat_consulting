@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/models/article.dart';
-import 'package:untitled3/blocs/articles_state.dart';
+
+import '../models/article.dart';
+import 'articles_state.dart';
 
 class ArticlesBloc extends Cubit<ArticleState> {
   ArticlesBloc() : super(ArticleState());

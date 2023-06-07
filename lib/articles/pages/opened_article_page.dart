@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/extensions/extensions.dart';
-import 'package:untitled3/models/article.dart';
-import 'package:untitled3/utilities/comon_utilities.dart';
-import 'package:rive/rive.dart';
+import 'package:untitled3/articles/extensions/extensions.dart';
 
 import '../blocs/tag_bloc.dart';
+import '../models/article.dart';
+import '../utilities/comon_utilities.dart';
 import 'add_article_page.dart';
 import '../blocs/articles_state.dart';
 import '../blocs/article_bloc.dart';
-
 
 class OpenedArticlePage extends StatefulWidget {
   const OpenedArticlePage({Key? key, required this.element}) : super(key: key);

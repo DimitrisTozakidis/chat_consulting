@@ -1,13 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:untitled3/type_of_connection.dart';
 
 import 'package:intl/intl.dart';
 import '../models/message.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  const ChatScreen({Key? key, required this.roomId, required this.otherUser}) : super(key: key);
+
+  final String? roomId;
+  final String? otherUser;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -16,13 +18,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final ScrollController scrollController = ScrollController();
   final List<Message> messages = [];
-  final Message one = Message(text: 'Hi,Baby', mine: false, time: DateTime(2012, 1, 1, 12, 2));
-  final Message two = Message(text: "You 're kavla", mine: false, time: DateTime(2012, 1, 1, 12, 2));
-  final Message three = Message(text: 'Yea...', mine: true, time: DateTime(2012, 1, 1, 12, 3));
-  final Message four = Message(text: 'I know daa', mine: true, time: DateTime(2012, 1, 1, 12, 3));
-  final Message five = Message(text: "You 're kavla", mine: false, time: DateTime(2012, 1, 1, 12, 2));
-  final Message six = Message(text: 'I know daaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', mine: true, time: DateTime(2012, 1, 1, 12, 3));
-  final String id = ''; //to id tou xristi prepeina mpei edo
 
   final _textController = TextEditingController();
 
@@ -35,17 +30,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
-    print(FirebaseAuth.instance.currentUser!.uid);
     super.initState();
-    messages.add(one);
-    messages.add(two);
-    messages.add(three);
-    messages.add(four);
-    messages.add(five);
-    messages.add(six);
   }
 
-  late String roomId;
+  Stream<QuerySnapshot> getMessagesStream() {
+    final firestore = FirebaseFirestore.instance;
+    return firestore.collection('Rooms').doc(widget.roomId).collection('messages').orderBy('datetime').snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,23 +76,34 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: double.infinity,
                     height: MediaQuery.of(context).size.height * 9 / 12 - 48,
                     child: StreamBuilder(
-                        stream: firestore.collection('messages').snapshots(),
+                        stream: getMessagesStream(),
                         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                           if (snapshot.hasData) {
                             if (snapshot.data!.docs.isNotEmpty) {
-                              List<QueryDocumentSnapshot?> allData = snapshot.data!.docs
-                                  .where((element) => element['users'].contains(id) && element['users'].contains(FirebaseAuth.instance.currentUser!.uid))
-                                  .toList();
+                              List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
+                              messages.clear();
                               QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
                               if (data != null) {
-                                setState(() {
-                                  roomId = data.id;
-                                });
+                                // setState(() {
+                                //   roomId = data.id;
+                                // });
+                                for (int i = 0; i < allData.length; i++) {
+                                  DateTime dateTime = allData[i]!['datetime'].toDate();
+                                  String formattedTime = DateFormat.Hm().format(dateTime);
+                                  messages.add(
+                                    Message(
+                                      text: allData[i]!['message'],
+                                      mine: allData[i]!['sent_by'] == FirebaseAuth.instance.currentUser!.uid,
+                                      time: formattedTime,
+                                    ),
+                                  );
+                                }
+                                messages.sort((a, b) => a.time.compareTo(b.time));
                               }
                               return data == null
                                   ? Container()
                                   : ListView.separated(
-                                      itemCount: messages.length,
+                                      itemCount: allData.length,
                                       scrollDirection: Axis.vertical,
                                       shrinkWrap: true,
                                       itemBuilder: (BuildContext context, int index) {
@@ -115,7 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     width: MediaQuery.of(context).size.width / 5,
                                                   ),
                                                   Text(
-                                                    DateFormat('HH:mm').format(messages[index].time),
+                                                    messages[index].time,
                                                     style: TextStyle(fontSize: 15),
                                                   ),
                                                 ],
@@ -164,7 +166,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                               ),
                                             if ((index + 1) == messages.length || messages[index].mine != messages[index + 1].mine)
                                               SizedBox(
-                                                height: 48,
+                                                height: 24,
                                               )
                                           ],
                                         );
@@ -207,28 +209,28 @@ class _ChatScreenState extends State<ChatScreen> {
                         tooltip: 'Increase volume by 10',
                         onPressed: () {
                           if (_textController.text.toString() != '') {
-                            if ('eVhXpioFvSjWvP3qgIer' != null) {
+                            if (widget.roomId != null) {
                               Map<String, dynamic> data = {
                                 'message': _textController.text.trim(),
                                 'sent_by': FirebaseAuth.instance.currentUser!.uid,
                                 'datetime': DateTime.now(),
                               };
-                              firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').doc('eVhXpioFvSjWvP3qgIer').update({
+                              firestore.collection('Rooms').doc(widget.roomId).update({
                                 'last_message_time': DateTime.now(),
                                 'last_message': _textController.text,
                               });
-                              firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').doc('eVhXpioFvSjWvP3qgIer').collection('Messages').add(data);
+                              firestore.collection('Rooms').doc(widget.roomId).collection('messages').add(data);
                             } else {
                               Map<String, dynamic> data = {
                                 'message': _textController.text.trim(),
                                 'sent_by': FirebaseAuth.instance.currentUser!.uid,
                                 'datetime': DateTime.now(),
                               };
-                              firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').add({
+                              firestore.collection('Rooms').add({
                                 'last_message': _textController.text,
                                 'last_message_time': DateTime.now(),
                               }).then((value) async {
-                                value.collection('Messages').add(data);
+                                value.collection('messages').add(data);
                               });
                             }
                           }

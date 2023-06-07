@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/models/article.dart';
-import 'package:untitled3/utilities/comon_utilities.dart';
-import 'package:untitled3/pages/opened_article_page.dart';
 
 import '../blocs/tag_bloc.dart';
+import '../models/article.dart';
+import '../utilities/comon_utilities.dart';
 import 'add_article_page.dart';
 import '../blocs/articles_state.dart';
 import '../blocs/tags_state.dart';
 import '../blocs/article_bloc.dart';
+import 'opened_article_page.dart';
+
 class ArticleListScreen extends StatefulWidget {
   const ArticleListScreen({Key? key}) : super(key: key);
 
   @override
   State<ArticleListScreen> createState() => _ArticleListScreenState();
-
 }
 
 class _ArticleListScreenState extends State<ArticleListScreen> {
@@ -43,100 +43,96 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
         bloc: tagsBloc,
         builder: (context, tagState) {
           return BlocBuilder<ArticlesBloc, ArticleState>(
-            bloc: articlesBloc,
-            builder: (context, state) {
-              return Scaffold(
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () async {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AddArticlePage()),
-                    );
+              bloc: articlesBloc,
+              builder: (context, state) {
+                return Scaffold(
+                  floatingActionButton: FloatingActionButton(
+                    onPressed: () async {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddArticlePage()),
+                      );
 
-
-                    if (result is Article) {
-                      articlesBloc.addNewArticle(result);
-                      setState(() {});
-                    }
-                  },
-                  backgroundColor: Colors.green,
-                  child: const Icon(Icons.add),
-                ),
-                appBar: AppBar(title: const Text('My ads')),
-                body: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: TextField(
-                          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Search ...'),
-                          onChanged: (query) {
-                            articlesBloc.updateSearchValue(query);
-                          },
-                        ),
-                      ),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                        const Text("Tags",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            )),
-                        SizedBox(
-                          height: 46,
-                          width: 250,
-                          child: ListView.separated(
-                            itemCount: tagsBloc.state.tags.length,
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true,
-                            itemBuilder: (BuildContext context, int index) {
-                              Color? mainColor = tagSelected.contains(tagsBloc.state.tags[index].id) ? Colors.orange[500] : Colors.orange[900];
-                              return Row(
-                                children: [
-                                  OutlinedButton(
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15.0),
-                                      ),
-                                      foregroundColor: Colors.blue,
-                                      backgroundColor: mainColor,
-                                      side: const BorderSide(width: 3, color: Colors.red),
-                                    ),
-                                    onPressed: () {
-                                      if(tagSelected.contains(tagsBloc.state.tags[index].id)){
-                                        tagSelected.remove(tagsBloc.state.tags[index].id);
-                                      }
-                                      else {
-                                        tagSelected.add(tagsBloc.state.tags[index].id);
-                                      }
-                                      articlesBloc.updateTagValue(tagSelected);
-
-                                      setState(() {}
-                                      );
-                                    },
-                                    child: Text(tagsBloc.state.tags[index].title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
-                                  ),
-                                ],
-                              );
-                            },
-                            separatorBuilder: (BuildContext context, int index) {
-                              return const SizedBox(width: 8);
+                      if (result is Article) {
+                        articlesBloc.addNewArticle(result);
+                        setState(() {});
+                      }
+                    },
+                    backgroundColor: Colors.green,
+                    child: const Icon(Icons.add),
+                  ),
+                  appBar: AppBar(title: const Text('My ads')),
+                  body: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: TextField(
+                            decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Search ...'),
+                            onChanged: (query) {
+                              articlesBloc.updateSearchValue(query);
                             },
                           ),
                         ),
-                      ]),
-                      _buildResults()
-                    ],
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                          const Text("Tags",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              )),
+                          SizedBox(
+                            height: 46,
+                            width: 250,
+                            child: ListView.separated(
+                              itemCount: tagsBloc.state.tags.length,
+                              scrollDirection: Axis.horizontal,
+                              shrinkWrap: true,
+                              itemBuilder: (BuildContext context, int index) {
+                                Color? mainColor = tagSelected.contains(tagsBloc.state.tags[index].id) ? Colors.orange[500] : Colors.orange[900];
+                                return Row(
+                                  children: [
+                                    OutlinedButton(
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(15.0),
+                                        ),
+                                        foregroundColor: Colors.blue,
+                                        backgroundColor: mainColor,
+                                        side: const BorderSide(width: 3, color: Colors.red),
+                                      ),
+                                      onPressed: () {
+                                        if (tagSelected.contains(tagsBloc.state.tags[index].id)) {
+                                          tagSelected.remove(tagsBloc.state.tags[index].id);
+                                        } else {
+                                          tagSelected.add(tagsBloc.state.tags[index].id);
+                                        }
+                                        articlesBloc.updateTagValue(tagSelected);
+
+                                        setState(() {});
+                                      },
+                                      child: Text(tagsBloc.state.tags[index].title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                                    ),
+                                  ],
+                                );
+                              },
+                              separatorBuilder: (BuildContext context, int index) {
+                                return const SizedBox(width: 8);
+                              },
+                            ),
+                          ),
+                        ]),
+                        _buildResults()
+                      ],
+                    ),
                   ),
-                ),
-              );
-            });
-      }
-    );
+                );
+              });
+        });
   }
 
   Widget _buildResults() {
@@ -155,14 +151,14 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                 onTap: () async {
                   articlesBloc.state.results[index].isRead = true;
                   FocusManager.instance.primaryFocus?.unfocus();
-                  dynamic tagPressed= await Navigator.push(
+                  dynamic tagPressed = await Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => OpenedArticlePage(
                               element: articlesBloc.state.results[index],
                             )),
                   );
-                  if(tagPressed is int){
+                  if (tagPressed is int) {
                     tagSelected.clear();
                     tagSelected.add(tagPressed);
                     articlesBloc.updateTagValue(tagSelected);
@@ -223,10 +219,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                             FocusManager.instance.primaryFocus?.unfocus();
                             final dynamic result = await Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                  builder: (context) => AddArticlePage(
-                                      article: articlesBloc.state.results[index]
-                                      )),
+                              MaterialPageRoute(builder: (context) => AddArticlePage(article: articlesBloc.state.results[index])),
                             ) as Article;
 
                             if (result is Article) {

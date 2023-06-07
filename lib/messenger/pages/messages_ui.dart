@@ -2,14 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:untitled3/messenger/pages/chat_screen.dart';
-import 'package:untitled3/type_of_connection.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/database.dart';
-import 'package:flutterfire_ui/firestore.dart';
-import 'package:flutterfire_ui/i10n.dart';
-import '../../snack_bar.dart';
+import 'package:untitled3/opening_screen.dart';
+import '../../articles/pages/article_list_screen.dart';
+import '../../utilities/snack_bar.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({Key? key}) : super(key: key);
@@ -41,7 +40,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       // Navigate to MessengerScreen on successful sign-in
       Navigator.pop(context);
       Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       String message;
       message = 'Nooo you will never LEAVE Hahahah';
       showTopSnackBar(
@@ -103,6 +102,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ListTile(
               leading: Icon(Icons.article),
               title: Text('Ads'),
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ArticleListScreen()),
+                );
+              },
             ),
             ListTile(
               leading: Icon(Icons.logout),
@@ -151,7 +156,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => ChatScreen()),
+                              MaterialPageRoute(builder: (context) => ChatScreen(roomId: 'allData[index]?.id', otherUser: 'userTalkingTo')),
                             );
                           },
                           child: Padding(
@@ -194,26 +199,36 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   width: double.infinity,
                   height: MediaQuery.of(context).size.height * 4 / 6 - 48,
                   child: StreamBuilder(
-                    stream: firestore.collection('Users').doc(FirebaseAuth.instance.currentUser!.uid).collection('Rooms').snapshots(),
+                    stream: firestore.collection('Rooms').snapshots(),
                     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                       if (snapshot.hasData) {
                         if (snapshot.data!.docs.isNotEmpty) {
-                          List<QueryDocumentSnapshot?> allData = snapshot.data!.docs
-                              .where((element) => element['Users'].contains(id) && element['Users'].contains(FirebaseAuth.instance.currentUser!.uid))
-                              .toList();
+                          List<QueryDocumentSnapshot?> allData =
+                              snapshot.data!.docs.where((element) => element['Users'].contains(FirebaseAuth.instance.currentUser!.uid)).toList();
+                          print(FirebaseAuth.instance.currentUser!.uid);
                           QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
                           if (data != null) {
-                            setState(() {
-                              roomId = data.id;
-                            });
+                            // roomId = data.id;
+                            // Stream<QuerySnapshot<Map<String, dynamic>>> messagesCollection =
+                            // firestore.collection('Rooms')
+                            //     .doc(data.id)
+                            //     .collection('messages').snapshots();
                           }
                           return data == null
                               ? Container()
                               : ListView.separated(
-                                  itemCount: data['Messages'].length,
+                                  itemCount: allData.length,
                                   scrollDirection: Axis.vertical,
                                   shrinkWrap: true,
                                   itemBuilder: (BuildContext context, int index) {
+                                    String? userTalkingTo;
+                                    DateTime dateTime = allData[index]!['last_message_time'].toDate();
+                                    String formattedTime = DateFormat.Hm().format(dateTime);
+                                    for (int i = 0; i < 2; i++) {
+                                      if (allData[index]!['Users'][i] != FirebaseAuth.instance.currentUser!.uid) {
+                                        userTalkingTo = allData[index]!['Users'][i];
+                                      }
+                                    }
                                     return Container(
                                       height: MediaQuery.of(context).size.height * 1 / 8,
                                       width: 20,
@@ -231,7 +246,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           onPressed: () {
                                             Navigator.push(
                                               context,
-                                              MaterialPageRoute(builder: (context) => ChatScreen()),
+                                              MaterialPageRoute(builder: (context) => ChatScreen(roomId: allData[index]?.id, otherUser: userTalkingTo)),
                                             );
                                           },
                                           child: Padding(
@@ -249,7 +264,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                     SizedBox(
                                                         width: MediaQuery.of(context).size.width / 2,
                                                         child: Text(
-                                                          'Dimitrios Tozakidis',
+                                                          userTalkingTo ?? '',
                                                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
                                                           overflow: TextOverflow.ellipsis,
                                                         )),
@@ -259,7 +274,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                     SizedBox(
                                                         width: MediaQuery.of(context).size.width / 3,
                                                         child: Text(
-                                                          'Wanna go hangout tomorrow at 8 afternoon maybe?',
+                                                          allData[index]!['last_message'],
                                                           softWrap: true,
                                                           style: TextStyle(fontSize: 15, color: Colors.grey),
                                                           overflow: TextOverflow.ellipsis,
@@ -270,7 +285,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                 Align(
                                                     alignment: Alignment.topRight,
                                                     child: Text(
-                                                      '2:30',
+                                                      formattedTime,
                                                       style: TextStyle(color: Colors.grey),
                                                     ))
                                               ],

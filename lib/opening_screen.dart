@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:untitled3/type_of_connection.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'common_utilities.dart';
 import 'login_register_screen.dart';
 
 class OpeningScreen extends StatefulWidget {

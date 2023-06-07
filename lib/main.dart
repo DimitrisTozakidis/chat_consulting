@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/firebase_options.dart';
-import 'blocs/article_bloc.dart';
-import 'blocs/tag_bloc.dart';
+import 'package:untitled3/utilities/firebase_options.dart';
+import 'articles/blocs/article_bloc.dart';
+import 'articles/blocs/tag_bloc.dart';
 import 'opening_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 

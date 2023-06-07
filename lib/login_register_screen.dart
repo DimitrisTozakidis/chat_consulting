@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:top_snackbar_flutter/tap_bounce_container.dart';
-import 'package:untitled3/snack_bar.dart';
+import 'package:untitled3/utilities/snack_bar.dart';
 import 'package:untitled3/type_of_connection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:untitled3/user_custom.dart';
 
 import 'auth.dart';
 import 'messenger/pages/messages_ui.dart';
-import 'models/user_custom.dart';
 
 class LoginRegisterScreen extends StatefulWidget {
   const LoginRegisterScreen({super.key, required this.typeOfConnection});

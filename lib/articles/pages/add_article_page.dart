@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/models/article.dart';
 import '../blocs/tag_bloc.dart';
 import '../blocs/tags_state.dart';
+import '../models/article.dart';
 
 class AddArticlePage extends StatefulWidget {
   const AddArticlePage({super.key, this.article});
