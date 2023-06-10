@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:untitled3/articles/blocs/tags_state.dart';
 
@@ -12,22 +12,26 @@ class TagsBloc extends Cubit<TagState> {
     await getTags();
   }
 
-  getTags() async {
+  Future<void> getTags() async {
     final List<Tag> tags = [];
-    try {
-      final dio = Dio();
-      final response =  await dio.get('http://192.168.2.3:3000/tags');
-      final List<dynamic> list = response.data;
+    final List<Color> colors = [Colors.red, Colors.blue, Colors.green, Colors.deepPurple, Colors.yellow, Colors.pinkAccent, Colors.brown];
+    final firestore = FirebaseFirestore.instance;
 
-      for (var element in list) {
-        tags.add(Tag.fromJson(element));
+    try {
+      final snapshot = await firestore.collection('Tags').get();
+      if (snapshot.docs.isNotEmpty) {
+        final List<QueryDocumentSnapshot> allData = snapshot.docs.toList();
+        for (int i = 0; i < allData.length; i++) {
+          Tag test = Tag(title: allData[i]['name'], color: colors[i], id: allData[i]['id']);
+          tags.add(test);
+        }
+        emit(state.copyWith(tags: tags));
+      } else {
+        emit(state.copyWith(tags: [])); // No tags found
       }
     } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
+      print('Error fetching tags: $error');
+      emit(state.copyWith(tags: [])); // Error occurred while fetching tags
     }
-
-    emit(state.copyWith(tags: tags));
   }
 }

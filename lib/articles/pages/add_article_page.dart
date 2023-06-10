@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/tag_bloc.dart';
@@ -157,10 +158,10 @@ class _AddArticlePageState extends State<AddArticlePage> {
                           : () {
                               Article article = Article(
                                   id: widget.article?.id,
-                                  image: ('https://picsum.photos/2000/2000?random=${Random().nextInt(100000)}'),
                                   title: titleController.text,
                                   tags: tagSelected,
-                                  description: descriptionController.text);
+                                  description: descriptionController.text,
+                              writer: FirebaseAuth.instance.currentUser!.uid);
                               Navigator.pop(context, article);
                             },
                       child: Text(widget.article == null ? 'Add Article' : 'Edit Article'),

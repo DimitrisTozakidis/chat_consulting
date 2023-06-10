@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'article.g.dart';
 @JsonSerializable()
 class Article {
   Article({
@@ -9,17 +8,14 @@ class Article {
     this.id,
     this.tags= const [],
     this.isRead = false,
-    required this.image
+    this.writer,
   });
 
   String title;
   String? description;
   List <int> tags;
-  int? id;
+  String? id;
   bool isRead;
-  final String image;
-
-  factory Article.fromJson(Map<String, dynamic> json) => _$ArticleFromJson(json);
-  Map<String, dynamic> toJson() => _$ArticleToJson(this);
+  String? writer;
 }
 

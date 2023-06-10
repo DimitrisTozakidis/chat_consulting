@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:untitled3/messenger/pages/chat_screen.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:untitled3/opening_screen.dart';
 import '../../articles/pages/article_list_screen.dart';
 import '../../utilities/snack_bar.dart';
 
@@ -19,7 +18,6 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   final ScrollController scrollController = ScrollController();
-  final String id = ''; //to id tou xristi prepeina mpei edo
 
   @override
   void dispose() {

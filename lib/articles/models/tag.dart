@@ -1,6 +1,7 @@
+import 'dart:ui';
+
 import 'package:json_annotation/json_annotation.dart';
 
-part 'tag.g.dart';
 @JsonSerializable()
 class Tag {
   Tag({
@@ -11,8 +12,6 @@ class Tag {
 
   String title;
   int id;
-  String color;
+  Color color;
 
-  factory Tag.fromJson(Map<String, dynamic> json) => _$TagFromJson(json);
-  Map<String, dynamic> toJson() => _$TagToJson(this);
 }

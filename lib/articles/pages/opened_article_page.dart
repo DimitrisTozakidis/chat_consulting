@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:untitled3/articles/extensions/extensions.dart';
 
 import '../blocs/tag_bloc.dart';
 import '../models/article.dart';
@@ -22,9 +22,11 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
   late final TagsBloc tagsBloc = context.read<TagsBloc>();
   late final ArticlesBloc articlesBloc = context.read<ArticlesBloc>();
 
+
   @override
   void initState() {
     super.initState();
+
     tagsBloc.initialize();
   }
 
@@ -54,7 +56,7 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                         decoration: BoxDecoration(
                           boxShadow: [BoxShadow(color: Colors.grey.shade600, spreadRadius: 30, blurRadius: 20)],
                           borderRadius: const BorderRadius.all(Radius.circular(18.0)),
-                          image: DecorationImage(image: NetworkImage(widget.element.image), fit: BoxFit.cover),
+                          image: DecorationImage(image: NetworkImage("https://picsum.photos/2000/2000?random=2"), fit: BoxFit.cover),
                         ),
                         //child: const RiveAnimation.asset("assets/vehicles.riv", fit: BoxFit.cover),
                       ),
@@ -80,22 +82,6 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                   ),
                                   Row(
                                     children: [
-                                      IconButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.transparent,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                        icon: const Icon(Icons.headphones, color: Colors.white),
-                                        onPressed: null,
-                                      ),
-                                      IconButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.transparent,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                        icon: const Icon(Icons.share, color: Colors.white),
-                                        onPressed: null,
-                                      ),
                                       PopupMenuButton(
                                           color: Colors.white,
                                           itemBuilder: (context) {
@@ -228,28 +214,17 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                 padding: const EdgeInsets.only(left: 60.0, bottom: 20),
                                 child: Row(
                                   children: [
-                                    const Text.rich(
+                                     Text.rich(
                                       TextSpan(
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 15,
                                           ),
                                           children: [
-                                            TextSpan(text: "By", style: TextStyle(color: Colors.grey)),
-                                            TextSpan(text: " Dimitris Tozakidis ", style: TextStyle(color: Colors.white)),
+                                            TextSpan(text: "By ", style: TextStyle(color: Colors.grey)),
+                                            TextSpan(text: widget.element.writer, style: TextStyle(color: Colors.white)),
                                           ]),
                                     ),
-                                    // Container(
-                                    //   width: 17,
-                                    //   height: 17,
-                                    //   decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                                    //   child: const Center(child: Text("5", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900))),
-                                    // ),
-                                    // const Text(" Mins Read",
-                                    //     style: TextStyle(
-                                    //       color: Colors.white,
-                                    //       fontSize: 15,
-                                    //     )),
                                   ],
                                 ),
                               )
@@ -259,15 +234,6 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                       ),
                     ],
                   ),
-                  // const Padding(
-                  //   padding: EdgeInsets.only(top: 8.0),
-                  //   child: Text("WWW.HUFFINGTONPOST.COM",
-                  //       style: TextStyle(
-                  //         color: Colors.white,
-                  //         fontSize: 15,
-                  //         fontWeight: FontWeight.w600,
-                  //       )),
-                  // ),
                   Padding(
                     padding: const EdgeInsets.only(left: 0.0, top: 16, right: 0),
                     child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -299,11 +265,11 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                     borderRadius: BorderRadius.circular(15.0),
                                   ),
                                   foregroundColor: Colors.blue,
-                                  side: BorderSide(width: 3, color: tagsBloc.state.tags[index].color.toColor())),
+                                  side: BorderSide(width: 3, color: tagsBloc.state.tags[index].color)),
                               onPressed: () {
                                 Navigator.pop(context, widget.element.tags[index]);
                               },
-                              child: Text(title, style: TextStyle(color: tagsBloc.state.tags[index].color.toColor(), fontSize: 15, fontWeight: FontWeight.w600)),
+                              child: Text(title, style: TextStyle(color: tagsBloc.state.tags[index].color, fontSize: 15, fontWeight: FontWeight.w600)),
                             );
                           },
                           separatorBuilder: (BuildContext context, int index) {

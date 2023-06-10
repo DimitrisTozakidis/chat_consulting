@@ -179,7 +179,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Image.network(articlesBloc.state.results[index].image, scale: 40.0),
+                          Image.network("https://picsum.photos/2000/2000?random=2", scale: 40.0),
                           Flexible(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),

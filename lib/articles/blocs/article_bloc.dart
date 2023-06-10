@@ -1,5 +1,4 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/article.dart';
@@ -66,51 +65,69 @@ class ArticlesBloc extends Cubit<ArticleState> {
 
   getArticles() async {
     final List<Article> articles = [];
-    try {
-      final dio = Dio();
-      final response = await dio.get('http://192.168.2.3:3000/articles');
-      final List<dynamic> list = response.data;
+    final firestore = FirebaseFirestore.instance;
 
-      for (var element in list) {
-        articles.add(Article.fromJson(element));
+    try {
+      final snapshot = await firestore.collection('Articles').get();
+      if (snapshot.docs.isNotEmpty) {
+        final List<QueryDocumentSnapshot> allData = snapshot.docs.toList();
+        for (int i = 0; i < allData.length; i++) {
+          final List<dynamic> tagsData = allData[i]['tags'];
+          final List<int> tags = tagsData.cast<int>(); // Cast tags to List<int>
+
+          Article test = Article(
+            title: allData[i]['title'],
+            description: allData[i]['description'],
+            id: allData[i].id,
+            isRead: allData[i]['isRead'],
+            tags: tags,
+            writer: allData[i]['writer'],
+          );
+          articles.add(test);
+        }
+        emit(state.copyWith(articles: articles, results: articles));
+      } else {
+        emit(state.copyWith(articles: [])); // No articles found
       }
     } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
+      print('Error fetching articles: $error');
+      emit(state.copyWith(articles: [])); // Error occurred while fetching articles
     }
-
-    emit(state.copyWith(articles: articles, results: articles));
   }
 
   addNewArticle(Article article) async {
+    final firestore = FirebaseFirestore.instance;
+
     try {
-      final dio = Dio();
-      await dio.post('http://192.168.2.3:3000/articles', data: {
-        "title": article.title,
-        "description": article.description,
-        "tags": article.tags,
-        "image": "https://picsum.photos/2000/2000?random=${state.articles.length}"
+      await firestore.collection('Articles').add({
+        'title': article.title,
+        'description': article.description,
+        'isRead': article.isRead,
+        'tags': article.tags,
+        'writer': article.writer,
       });
       await getArticles();
     } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
+      print('Error adding article: $error');
     }
 
     updateSearchValue(state.searchValue);
   }
 
   updateArticle(Article article) async {
+    final firestore = FirebaseFirestore.instance;
+
     try {
-      final dio = Dio();
-      await dio.put('http://192.168.2.3:3000/articles/${article.id}', data: article.toJson());
+      await firestore.collection('Articles').doc(article.id).update({
+        'title': article.title,
+        'description': article.description,
+        'isRead': article.isRead,
+        'tags': article.tags,
+        'writer': article.writer,
+      });
       await getArticles();
     } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
+      print('Error updating article: $error');
     }
 
     updateSearchValue(state.searchValue);
@@ -121,6 +138,7 @@ class ArticlesBloc extends Cubit<ArticleState> {
     String title,
     String? description,
   ) async {
+    final firestore = FirebaseFirestore.instance;
     final List<Article> articles = state.articles;
     Article? foundArticle;
 
@@ -135,29 +153,36 @@ class ArticlesBloc extends Cubit<ArticleState> {
       }
     }
     try {
-      final dio = Dio();
-      await dio.put('http://192.168.2.3:3000/articles/$id', data: {"id": id, "title": title, "description": description, "image": foundArticle?.image});
+      await firestore.collection('Articles').doc(foundArticle!.id).update({
+        'title': foundArticle.title,
+        'description': foundArticle.description,
+      });
       await getArticles();
     } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
+      print('Error updating article in Firestore: $error');
     }
 
     updateSearchValue(state.searchValue);
   }
 
   deleteArticle(Article article) async {
+    final firestore = FirebaseFirestore.instance;
     final List<Article> articles = state.articles;
 
     try {
-      final dio = Dio();
-      await dio.delete('http://192.168.2.3:3000/articles/${article.id}', data: {"id": article.id});
-      await getArticles();
-    } catch (error) {
-      if (kDebugMode) {
-        print(error);
+      // Find the index of the article to delete
+      final int deleteIndex = articles.indexWhere((articleToDel) => articleToDel.id == article.id);
+
+      // If the article is found, remove it from the list and delete it from Firestore
+      if (deleteIndex != -1) {
+        final Article deletedArticle = articles[deleteIndex];
+        articles.removeAt(deleteIndex);
+
+        await firestore.collection('Articles').doc(deletedArticle.id).delete();
+        await getArticles();
       }
+    } catch (error) {
+      print('Error deleting article from Firestore: $error');
     }
     articles.remove(article);
 
@@ -165,15 +190,19 @@ class ArticlesBloc extends Cubit<ArticleState> {
   }
 
   openedArticle(Article article) async {
+    final firestore = FirebaseFirestore.instance;
+
     try {
-      final dio = Dio();
-      article.isRead = true;
-      await dio.put('http://192.168.2.3:3000/articles/${article.id}', data: article.toJson());
+      await firestore.collection('Articles').doc(article.id).update({
+        'title': article.title,
+        'description': article.description,
+        'isRead': article.isRead,
+        'tags': article.tags,
+        'writer': article.writer,
+      });
       await getArticles();
     } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
+      print('Error updating article: $error');
     }
 
     updateSearchValue(state.searchValue);
