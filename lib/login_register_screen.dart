@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:top_snackbar_flutter/tap_bounce_container.dart';
 import 'package:untitled3/utilities/snack_bar.dart';
-import 'package:untitled3/type_of_connection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -31,6 +29,7 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
   bool isLogin = true;
   String? errorMessage = 'erorrrr';
   final int j = 0;
+  final firestore = FirebaseFirestore.instance;
 
   Future<void> signOut() async {
     await Auth().signOut();
@@ -72,10 +71,15 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
     }
   }
 
-
   Future<void> createUserWithEmailAndPassword() async {
     try {
       await Auth().createUserWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
+      Map<String, dynamic> data = {
+        'name': _nameController.text,
+        'id': FirebaseAuth.instance.currentUser!.uid,
+      };
+      firestore.collection('Users').add(data);
+
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -92,13 +96,12 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       }
       showTopSnackBar(
         Overlay.of(context),
-         CustomSnackBar.error(
+        CustomSnackBar.error(
           message: message,
         ),
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -236,33 +239,32 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
                                       height: 8,
                                     ),
                                     if (_typeOfConnection == 1)
-                                    TextField(
-                                      textInputAction: TextInputAction.next,
-                                      controller: _nameController,
-                                      decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Username'),
-                                      onChanged: (query) {},
-                                    ),
+                                      TextField(
+                                        textInputAction: TextInputAction.next,
+                                        controller: _nameController,
+                                        decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Username'),
+                                        onChanged: (query) {},
+                                      ),
                                     SizedBox(
                                       height: 16,
                                     ),
-                                      Column(
-                                        children: [
-                                          TextField(
-                                            // inputFormatters: [
-                                            //   FilteringTextInputFormatter.allow(RegExp(r'[0-9-,.]')),
-                                            //   DecimalTextInputFormatter(),
-                                            // ],
-                                            textInputAction: TextInputAction.next,
-                                            controller: _emailController,
-                                            decoration:
-                                                InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Enter your Email'),
-                                            onChanged: (query) {},
-                                          ),
-                                          SizedBox(
-                                            height: 16,
-                                          ),
-                                        ],
-                                      ),
+                                    Column(
+                                      children: [
+                                        TextField(
+                                          // inputFormatters: [
+                                          //   FilteringTextInputFormatter.allow(RegExp(r'[0-9-,.]')),
+                                          //   DecimalTextInputFormatter(),
+                                          // ],
+                                          textInputAction: TextInputAction.next,
+                                          controller: _emailController,
+                                          decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)), hintText: 'Enter your Email'),
+                                          onChanged: (query) {},
+                                        ),
+                                        SizedBox(
+                                          height: 16,
+                                        ),
+                                      ],
+                                    ),
                                     TextField(
                                       textInputAction: TextInputAction.done,
                                       obscureText: true,

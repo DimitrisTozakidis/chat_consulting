@@ -74,14 +74,21 @@ class ArticlesBloc extends Cubit<ArticleState> {
         for (int i = 0; i < allData.length; i++) {
           final List<dynamic> tagsData = allData[i]['tags'];
           final List<int> tags = tagsData.cast<int>(); // Cast tags to List<int>
+          final snapshotSecond = await FirebaseFirestore.instance.collection('Users').get();
+          String tagName='';
 
+          snapshotSecond.docs.forEach((doc) {
+            if (doc.data()['id'] == allData[i]['writer']) {
+              tagName = doc.data()['name'];
+            }
+          });
           Article test = Article(
             title: allData[i]['title'],
             description: allData[i]['description'],
             id: allData[i].id,
             isRead: allData[i]['isRead'],
             tags: tags,
-            writer: allData[i]['writer'],
+            writer: tagName,
           );
           articles.add(test);
         }

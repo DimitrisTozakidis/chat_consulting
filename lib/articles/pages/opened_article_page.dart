@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,11 +23,9 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
   late final TagsBloc tagsBloc = context.read<TagsBloc>();
   late final ArticlesBloc articlesBloc = context.read<ArticlesBloc>();
 
-
-  @override
+    @override
   void initState() {
     super.initState();
-
     tagsBloc.initialize();
   }
 
