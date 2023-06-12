@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -62,7 +63,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                     backgroundColor: Colors.green,
                     child: const Icon(Icons.add),
                   ),
-                  appBar: AppBar(title: const Text('My ads')),
+                  appBar: AppBar(title: const Text('Ads')),
                   body: SingleChildScrollView(
                     controller: scrollController,
                     child: Column(
@@ -195,7 +196,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () async {
+                            onPressed: articlesBloc.state.results[index].writerId!= FirebaseAuth.instance.currentUser!.uid ? null :() async {
                               CommonUtilities.openDeleteDialog(context, articlesBloc.state.results[index], () {
                                 articlesBloc.deleteArticle(articlesBloc.state.results[index]);
                                 setState(() {});
@@ -234,7 +235,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                             // var dog= Dog();
                             // dog.speak();
                           },
-                          child: const Text('Edit'),
+                          child:  Text('Edit', style: TextStyle(color: articlesBloc.state.results[index].writerId!= FirebaseAuth.instance.currentUser!.uid ? mainColor : Colors.white),),
                         ),
                       ),
                     ],

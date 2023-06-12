@@ -122,7 +122,6 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
           if (streamSnapshot.hasError) {
             return (Text('Something went wrong'));
           } else if (streamSnapshot.hasData) {
-            final users = streamSnapshot.data!;
 
             return j == 1
                 ? ListView.builder(

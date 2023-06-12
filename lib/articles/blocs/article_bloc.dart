@@ -75,20 +75,22 @@ class ArticlesBloc extends Cubit<ArticleState> {
           final List<dynamic> tagsData = allData[i]['tags'];
           final List<int> tags = tagsData.cast<int>(); // Cast tags to List<int>
           final snapshotSecond = await FirebaseFirestore.instance.collection('Users').get();
-          String tagName='';
+          String? tagName;
 
           snapshotSecond.docs.forEach((doc) {
             if (doc.data()['id'] == allData[i]['writer']) {
               tagName = doc.data()['name'];
             }
           });
+
           Article test = Article(
             title: allData[i]['title'],
             description: allData[i]['description'],
             id: allData[i].id,
             isRead: allData[i]['isRead'],
             tags: tags,
-            writer: tagName,
+            writer: tagName ?? allData[i]['writer'],
+            writerId: allData[i]['writerId']
           );
           articles.add(test);
         }
@@ -112,6 +114,8 @@ class ArticlesBloc extends Cubit<ArticleState> {
         'isRead': article.isRead,
         'tags': article.tags,
         'writer': article.writer,
+        'writerId': article.writerId
+
       });
       await getArticles();
     } catch (error) {
@@ -131,6 +135,7 @@ class ArticlesBloc extends Cubit<ArticleState> {
         'isRead': article.isRead,
         'tags': article.tags,
         'writer': article.writer,
+        'writerId': article.writerId,
       });
       await getArticles();
     } catch (error) {
@@ -206,6 +211,7 @@ class ArticlesBloc extends Cubit<ArticleState> {
         'isRead': article.isRead,
         'tags': article.tags,
         'writer': article.writer,
+        'writerId': article.writerId,
       });
       await getArticles();
     } catch (error) {

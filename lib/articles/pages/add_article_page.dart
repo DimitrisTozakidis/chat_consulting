@@ -161,7 +161,9 @@ class _AddArticlePageState extends State<AddArticlePage> {
                                   title: titleController.text,
                                   tags: tagSelected,
                                   description: descriptionController.text,
-                              writer: FirebaseAuth.instance.currentUser!.uid);
+                              writer: FirebaseAuth.instance.currentUser!.uid,
+                              writerId: FirebaseAuth.instance.currentUser!.uid,
+                              );
                               Navigator.pop(context, article);
                             },
                       child: Text(widget.article == null ? 'Add Article' : 'Edit Article'),

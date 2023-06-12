@@ -9,6 +9,7 @@ class Article {
     this.tags= const [],
     this.isRead = false,
     this.writer,
+    required this.writerId
   });
 
   String title;
@@ -17,5 +18,6 @@ class Article {
   String? id;
   bool isRead;
   String? writer;
+  String? writerId;
 }
 
