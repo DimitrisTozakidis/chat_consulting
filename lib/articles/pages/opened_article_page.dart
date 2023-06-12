@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:untitled3/messenger/pages/chat_screen.dart';
 
 import '../blocs/tag_bloc.dart';
 import '../models/article.dart';
@@ -21,7 +24,7 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
   late final TagsBloc tagsBloc = context.read<TagsBloc>();
   late final ArticlesBloc articlesBloc = context.read<ArticlesBloc>();
 
-    @override
+  @override
   void initState() {
     super.initState();
     tagsBloc.initialize();
@@ -39,6 +42,29 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
       builder: (context, state) {
         return Scaffold(
           backgroundColor: Colors.white,
+          floatingActionButton: FirebaseAuth.instance.currentUser!.uid == widget.element.writerId
+              ? null
+              : FloatingActionButton(
+                  onPressed: () async {
+                    final firestore = FirebaseFirestore.instance;
+                    final snapshot = await firestore.collection('Rooms').get();
+                    QueryDocumentSnapshot<Map<String, dynamic>>? data;
+                    try {
+                      data = snapshot.docs.firstWhere(
+                          (element) => element['Users'].contains(FirebaseAuth.instance.currentUser!.uid) && element['Users'].contains(widget.element.writerId));
+                    } catch (e) {
+                      data = null;
+                    }
+                    String? roomId = data?.id;
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ChatScreen(roomId: roomId, otherUser: widget.element.writerId)),
+                    );
+                  },
+                  backgroundColor: Colors.green,
+                  child: const Text('Answer'),
+                ),
           body: SafeArea(
             top: false,
             child: SingleChildScrollView(
@@ -211,11 +237,11 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                 padding: const EdgeInsets.only(left: 60.0, bottom: 20),
                                 child: Row(
                                   children: [
-                                     Text.rich(
+                                    Text.rich(
                                       TextSpan(
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 15,
+                                            fontSize: 20,
                                           ),
                                           children: [
                                             TextSpan(text: "By ", style: TextStyle(color: Colors.grey)),

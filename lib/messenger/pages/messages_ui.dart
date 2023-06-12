@@ -50,6 +50,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
     }
   }
 
+  Stream<QuerySnapshot> getName() {
+    final firestore = FirebaseFirestore.instance;
+    return firestore.collection('Users').snapshots();
+  }
+
   late String roomId;
 
   @override
@@ -100,7 +105,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ListTile(
               leading: Icon(Icons.article),
               title: Text('Ads'),
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ArticleListScreen()),
@@ -118,8 +123,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
       backgroundColor: Color(0xFF4622fe),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
@@ -132,54 +139,115 @@ class _MessagesScreenState extends State<MessagesScreen> {
               SizedBox(height: 8),
               Container(
                 height: 91,
-                child: ListView.separated(
-                  itemCount: 5,
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Container(
-                      height: 83,
-                      width: 100,
-                      child: OutlinedButton(
-                          style: ButtonStyle(
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                            ),
-                            side: MaterialStateProperty.all<BorderSide>(
-                              BorderSide.none, // Remove the outline border
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ChatScreen(roomId: 'allData[index]?.id', otherUser: 'userTalkingTo')),
-                            );
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
-                                  height: 56,
-                                  width: 56,
-                                ),
-                                Text(
-                                  'Dimitrios Tozakidis',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
-                                  overflow: TextOverflow.ellipsis,
-                                )
-                              ],
-                            ),
-                          )),
-                    );
-                  },
-                  separatorBuilder: (BuildContext context, int index) {
-                    return const SizedBox(width: 8);
-                  },
-                ),
+                child: StreamBuilder(
+                    stream: firestore.collection('Rooms').snapshots(),
+                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data!.docs.isNotEmpty) {
+                          List<QueryDocumentSnapshot?> allData =
+                              snapshot.data!.docs.where((element) => element['Users'].contains(FirebaseAuth.instance.currentUser!.uid)).toList();
+                          QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
+                          allData.sort((a, b) {
+                            // Get the number of docs in the 'messages' collection for each snapshot
+                            int aMessageCount = a!['sum'];
+                            int bMessageCount = b!['sum'];
+
+                            // Compare the message counts
+                            return bMessageCount.compareTo(aMessageCount);
+                          });
+                          return data == null
+                              ? Container()
+                              : ListView.separated(
+                                  itemCount: allData.length,
+                                  scrollDirection: Axis.horizontal,
+                                  shrinkWrap: true,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    String? userTalkingTo;
+                                    for (int i = 0; i < 2; i++) {
+                                      if (allData[index]!['Users'][i] != FirebaseAuth.instance.currentUser!.uid) {
+                                        userTalkingTo = allData[index]!['Users'][i];
+                                      }
+                                    }
+                                    return Container(
+                                      height: 83,
+                                      width: 100,
+                                      child: OutlinedButton(
+                                          style: ButtonStyle(
+                                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                              RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(20.0),
+                                              ),
+                                            ),
+                                            side: MaterialStateProperty.all<BorderSide>(
+                                              BorderSide.none, // Remove the outline border
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => ChatScreen(roomId: allData[index]?.id, otherUser: userTalkingTo)),
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
+                                                  height: 56,
+                                                  width: 56,
+                                                ),
+                                                StreamBuilder(
+                                                    stream: getName(),
+                                                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                      if (snapshot.hasData) {
+                                                        if (snapshot.data!.docs.isNotEmpty) {
+                                                          List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
+                                                          QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
+                                                          if (data != null) {
+                                                            if (data['id'] == userTalkingTo) {
+                                                              return Text(
+                                                                data['name'] ?? '',
+                                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                                                                overflow: TextOverflow.ellipsis,
+                                                              );
+                                                            } else {
+                                                              return Container();
+                                                            }
+                                                          } else {
+                                                            return Container();
+                                                          }
+                                                        } else {
+                                                          return Center(
+                                                            child: Text('No name found'),
+                                                          );
+                                                        }
+                                                      } else {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(color: Colors.blue),
+                                                        );
+                                                      }
+                                                    }),
+                                              ],
+                                            ),
+                                          )),
+                                    );
+                                  },
+                                  separatorBuilder: (BuildContext context, int index) {
+                                    return const SizedBox(width: 8);
+                                  },
+                                );
+                        } else {
+                          return Center(
+                            child: Text('No conversation found'),
+                          );
+                        }
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(color: Colors.blue),
+                        );
+                      }
+                    }),
               ),
             ],
           ),
@@ -203,7 +271,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         if (snapshot.data!.docs.isNotEmpty) {
                           List<QueryDocumentSnapshot?> allData =
                               snapshot.data!.docs.where((element) => element['Users'].contains(FirebaseAuth.instance.currentUser!.uid)).toList();
-                          print(FirebaseAuth.instance.currentUser!.uid);
                           QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
                           if (data != null) {
                             // roomId = data.id;
@@ -260,12 +327,39 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     SizedBox(
-                                                        width: MediaQuery.of(context).size.width / 2,
-                                                        child: Text(
-                                                          userTalkingTo ?? '',
-                                                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
-                                                          overflow: TextOverflow.ellipsis,
-                                                        )),
+                                                      width: MediaQuery.of(context).size.width / 2,
+                                                      child: StreamBuilder(
+                                                          stream: getName(),
+                                                          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                            if (snapshot.hasData) {
+                                                              if (snapshot.data!.docs.isNotEmpty) {
+                                                                List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
+                                                                QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
+                                                                if (data != null) {
+                                                                  if (data['id'] == userTalkingTo) {
+                                                                    return Text(
+                                                                      data['name'] ?? '',
+                                                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
+                                                                      overflow: TextOverflow.ellipsis,
+                                                                    );
+                                                                  } else {
+                                                                    return Container();
+                                                                  }
+                                                                } else {
+                                                                  return Container();
+                                                                }
+                                                              } else {
+                                                                return Center(
+                                                                  child: Text('No name found'),
+                                                                );
+                                                              }
+                                                            } else {
+                                                              return Center(
+                                                                child: CircularProgressIndicator(color: Colors.blue),
+                                                              );
+                                                            }
+                                                          }),
+                                                    ),
                                                     SizedBox(
                                                       height: 8,
                                                     ),

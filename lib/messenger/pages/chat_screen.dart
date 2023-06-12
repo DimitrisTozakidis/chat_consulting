@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import '../models/message.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({Key? key, required this.roomId, required this.otherUser}) : super(key: key);
+  ChatScreen({Key? key, required this.roomId, required this.otherUser}) : super(key: key);
 
-  final String? roomId;
+  late String? roomId;
   final String? otherUser;
 
   @override
@@ -38,6 +38,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return firestore.collection('Rooms').doc(widget.roomId).collection('messages').orderBy('datetime').snapshots();
   }
 
+  Stream<QuerySnapshot> getName() {
+    final firestore = FirebaseFirestore.instance;
+    return firestore.collection('Users').snapshots();
+  }
+
   @override
   Widget build(BuildContext context) {
     final firestore = FirebaseFirestore.instance;
@@ -48,10 +53,36 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text(
-              'Name Surname',
-              style: TextStyle(fontSize: 20),
-            ),
+            StreamBuilder(
+                stream: getName(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasData) {
+                    if (snapshot.data!.docs.isNotEmpty) {
+                      List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
+                      QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
+                      if (data != null) {
+                        if (data['id'] == widget.otherUser) {
+                          return Text(
+                            data['name'],
+                            style: TextStyle(fontSize: 20),
+                          );
+                        } else {
+                          return Container();
+                        }
+                      } else {
+                        return Container();
+                      }
+                    } else {
+                      return Center(
+                        child: Text('No name found'),
+                      );
+                    }
+                  } else {
+                    return Center(
+                      child: CircularProgressIndicator(color: Colors.blue),
+                    );
+                  }
+                }),
             SizedBox(
               width: 16,
             )
@@ -218,6 +249,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               firestore.collection('Rooms').doc(widget.roomId).update({
                                 'last_message_time': DateTime.now(),
                                 'last_message': _textController.text,
+                                'sum': messages.length + 1,
                               });
                               firestore.collection('Rooms').doc(widget.roomId).collection('messages').add(data);
                             } else {
@@ -227,14 +259,21 @@ class _ChatScreenState extends State<ChatScreen> {
                                 'datetime': DateTime.now(),
                               };
                               firestore.collection('Rooms').add({
+                                'Users': [widget.otherUser, FirebaseAuth.instance.currentUser!.uid],
                                 'last_message': _textController.text,
                                 'last_message_time': DateTime.now(),
+                                'sum': 1,
                               }).then((value) async {
-                                value.collection('messages').add(data);
+                                await firestore.collection('Rooms').doc(value.id).collection('messages').add(data);
+                                setState(() {
+                                  widget.roomId = value.id;
+                                });
                               });
                             }
                           }
-                          _textController.clear();
+                          setState(() {
+                            _textController.clear();
+                          });
                         },
                       ),
                     ],
