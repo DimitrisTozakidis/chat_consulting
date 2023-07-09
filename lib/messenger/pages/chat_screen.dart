@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import 'package:intl/intl.dart';
 import '../models/message.dart';
@@ -8,7 +9,7 @@ import '../models/message.dart';
 class ChatScreen extends StatefulWidget {
   ChatScreen({Key? key, required this.roomId, required this.otherUser}) : super(key: key);
 
-  late String? roomId;
+  late final String? roomId;
   final String? otherUser;
 
   @override
@@ -18,6 +19,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final ScrollController scrollController = ScrollController();
   final List<Message> messages = [];
+  bool? isRated= false;
 
   final _textController = TextEditingController();
 
@@ -31,6 +33,18 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    final firestore = FirebaseFirestore.instance;
+    final roomRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomId);
+
+    roomRef.get().then((DocumentSnapshot snapshot) {
+      if (snapshot.exists) {
+        isRated = (snapshot.data() as Map<String, dynamic>)['isRated'] as bool?;
+      } else {
+        isRated = false;
+      }
+    }).catchError((error) {
+      // Error retrieving the document
+    });
   }
 
   Stream<QuerySnapshot> getMessagesStream() {
@@ -46,43 +60,58 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final firestore = FirebaseFirestore.instance;
+    final roomRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomId);
 
+    roomRef.get().then((DocumentSnapshot snapshot) {
+      if (snapshot.exists) {
+        isRated = (snapshot.data() as Map<String, dynamic>)['isRated'] as bool?;
+      } else {
+        isRated = false;
+      }
+    }).catchError((error) {
+      // Error retrieving the document
+    });
     // 1
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            StreamBuilder(
-                stream: getName(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasData) {
-                    if (snapshot.data!.docs.isNotEmpty) {
-                      List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
-                      QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
-                      if (data != null) {
-                        if (data['id'] == widget.otherUser) {
-                          return Text(
-                            data['name'],
-                            style: TextStyle(fontSize: 20),
-                          );
-                        } else {
-                          return Container();
-                        }
-                      } else {
-                        return Container();
+            StreamBuilder<QuerySnapshot>(
+              stream: getName(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  if (snapshot.data!.docs.isNotEmpty) {
+                    List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
+                    QueryDocumentSnapshot? data;
+                    for (int i = 0; i < allData.length; i++) {
+                      data = allData[i];
+                      if (data['id'] == widget.otherUser) {
+                        return Text(
+                          data['name'] ?? '',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                          overflow: TextOverflow.ellipsis,
+                        );
                       }
-                    } else {
-                      return Center(
-                        child: Text('No name found'),
-                      );
                     }
+                    // Return a default widget if no matching data is found
+                    return Container();
                   } else {
                     return Center(
-                      child: CircularProgressIndicator(color: Colors.blue),
+                      child: Text('No name found'),
                     );
                   }
-                }),
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(color: Colors.blue),
+                  );
+                }
+              },
+            ),
             SizedBox(
               width: 16,
             )
@@ -96,7 +125,72 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 1 / 6 - 78),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    'Rate the user',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                RatingBar.builder(
+                  initialRating: 0,
+                  minRating: 1,
+                  direction: Axis.horizontal,
+                  allowHalfRating: true,
+                  itemCount: 5,
+                  ignoreGestures: isRated ?? false,
+                  itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                  itemBuilder: (context, _) => Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  onRatingUpdate: (rating) {
+                    isRated = true;
+                    Stream<QuerySnapshot> stream = getName();
+                    stream.listen((snapshot) {
+                      if (snapshot.docs.isNotEmpty) {
+                        List<QueryDocumentSnapshot> allData = snapshot.docs;
+                        QueryDocumentSnapshot? data;
+                        for (int i = 0; i < allData.length; i++) {
+                          data = allData[i];
+                          if (data['id'] == widget.otherUser) {
+                            // Process the data here
+                            int reviewNumber = data['review_number'];
+                            if (reviewNumber != 0) {
+                              double review = data['review'];
+                              double newRating = (review * reviewNumber + rating) / (reviewNumber + 1);
+                              firestore.collection('Users').doc(data.id).update({
+                                'review': newRating,
+                                'review_number': reviewNumber + 1,
+                              });
+                            } else {
+                              firestore.collection('Users').doc(data.id).update({
+                                'review': rating,
+                                'review_number': 1,
+                              });
+                            }
+                            break; // Exit the loop if a matching data is found
+                          }
+                        }
+                        firestore.collection('Rooms').doc(widget.roomId).update({'isRead': true});
+                        setState(() {});
+                      } else {
+                        print('No user found');
+                      }
+                    }, onError: (error) {
+                      print('Error: $error');
+                    });
+
+                    ;
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 1 / 6 - 48),
             Container(
               padding: EdgeInsets.all(24),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
@@ -105,7 +199,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   SizedBox(
                     width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 9 / 12 - 48,
+                    height: MediaQuery.of(context).size.height * 9 / 12 - 88,
                     child: StreamBuilder(
                         stream: getMessagesStream(),
                         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {

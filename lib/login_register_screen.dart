@@ -77,6 +77,8 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
       Map<String, dynamic> data = {
         'name': _nameController.text,
         'id': FirebaseAuth.instance.currentUser!.uid,
+        'review': 0,
+        'review_number': 0
       };
       firestore.collection('Users').add(data);
 

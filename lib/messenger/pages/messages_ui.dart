@@ -136,7 +136,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   style: TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.w500),
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 24),
               Container(
                 height: 91,
                 child: StreamBuilder(
@@ -166,6 +166,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                     for (int i = 0; i < 2; i++) {
                                       if (allData[index]!['Users'][i] != FirebaseAuth.instance.currentUser!.uid) {
                                         userTalkingTo = allData[index]!['Users'][i];
+                                        print(userTalkingTo);
                                       }
                                     }
                                     return Container(
@@ -197,37 +198,41 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                   height: 56,
                                                   width: 56,
                                                 ),
-                                                StreamBuilder(
-                                                    stream: getName(),
-                                                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                      if (snapshot.hasData) {
-                                                        if (snapshot.data!.docs.isNotEmpty) {
-                                                          List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
-                                                          QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
-                                                          if (data != null) {
-                                                            if (data['id'] == userTalkingTo) {
-                                                              return Text(
-                                                                data['name'] ?? '',
-                                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
-                                                                overflow: TextOverflow.ellipsis,
-                                                              );
-                                                            } else {
-                                                              return Container();
-                                                            }
-                                                          } else {
-                                                            return Container();
+                                                StreamBuilder<QuerySnapshot>(
+                                                  stream: getName(),
+                                                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                    if (snapshot.hasData) {
+                                                      if (snapshot.data!.docs.isNotEmpty) {
+                                                        List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
+                                                        QueryDocumentSnapshot? data;
+                                                        for (int i = 0; i < allData.length; i++) {
+                                                          data = allData[i];
+                                                          if (data['id'] == userTalkingTo) {
+                                                            return Text(
+                                                              data['name'] ?? '',
+                                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                                                              overflow: TextOverflow.ellipsis,
+                                                            );
                                                           }
-                                                        } else {
-                                                          return Center(
-                                                            child: Text('No name found'),
-                                                          );
                                                         }
+                                                        // Return a default widget if no matching data is found
+                                                        return Container();
                                                       } else {
                                                         return Center(
-                                                          child: CircularProgressIndicator(color: Colors.blue),
+                                                          child: Text('No name found'),
                                                         );
                                                       }
-                                                    }),
+                                                    } else if (snapshot.hasError) {
+                                                      return Center(
+                                                        child: Text('Error: ${snapshot.error}'),
+                                                      );
+                                                    } else {
+                                                      return Center(
+                                                        child: CircularProgressIndicator(color: Colors.blue),
+                                                      );
+                                                    }
+                                                  },
+                                                )
                                               ],
                                             ),
                                           )),
@@ -327,39 +332,42 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     SizedBox(
-                                                      width: MediaQuery.of(context).size.width / 2,
-                                                      child: StreamBuilder(
+                                                        width: MediaQuery.of(context).size.width / 2,
+                                                        child: StreamBuilder<QuerySnapshot>(
                                                           stream: getName(),
                                                           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                             if (snapshot.hasData) {
                                                               if (snapshot.data!.docs.isNotEmpty) {
-                                                                List<QueryDocumentSnapshot?> allData = snapshot.data!.docs;
-                                                                QueryDocumentSnapshot? data = allData.isNotEmpty ? allData.first : null;
-                                                                if (data != null) {
+                                                                List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
+                                                                QueryDocumentSnapshot? data;
+                                                                for (int i = 0; i < allData.length; i++) {
+                                                                  data = allData[i];
                                                                   if (data['id'] == userTalkingTo) {
                                                                     return Text(
                                                                       data['name'] ?? '',
                                                                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
                                                                       overflow: TextOverflow.ellipsis,
                                                                     );
-                                                                  } else {
-                                                                    return Container();
                                                                   }
-                                                                } else {
-                                                                  return Container();
                                                                 }
+                                                                // Return a default widget if no matching data is found
+                                                                return Container();
                                                               } else {
                                                                 return Center(
                                                                   child: Text('No name found'),
                                                                 );
                                                               }
+                                                            } else if (snapshot.hasError) {
+                                                              return Center(
+                                                                child: Text('Error: ${snapshot.error}'),
+                                                              );
                                                             } else {
                                                               return Center(
                                                                 child: CircularProgressIndicator(color: Colors.blue),
                                                               );
                                                             }
-                                                          }),
-                                                    ),
+                                                          },
+                                                        )),
                                                     SizedBox(
                                                       height: 8,
                                                     ),
