@@ -142,6 +142,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 child: StreamBuilder(
                     stream: firestore.collection('Rooms').snapshots(),
                     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      double? rating;
+                      bool isRated = false;
                       if (snapshot.hasData) {
                         if (snapshot.data!.docs.isNotEmpty) {
                           List<QueryDocumentSnapshot?> allData =
@@ -186,7 +188,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           onPressed: () {
                                             Navigator.push(
                                               context,
-                                              MaterialPageRoute(builder: (context) => ChatScreen(roomId: allData[index]?.id, otherUser: userTalkingTo)),
+                                              MaterialPageRoute(
+                                                  builder: (context) => ChatScreen(
+                                                        roomId: allData[index]?.id,
+                                                        otherUser: userTalkingTo,
+                                                        rating: rating,
+                                                        isRated: isRated,
+                                                      )),
                                             );
                                           },
                                           child: Padding(
@@ -205,9 +213,17 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                       if (snapshot.data!.docs.isNotEmpty) {
                                                         List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
                                                         QueryDocumentSnapshot? data;
+
                                                         for (int i = 0; i < allData.length; i++) {
                                                           data = allData[i];
                                                           if (data['id'] == userTalkingTo) {
+                                                            rating = data['review'].toDouble() ?? 0;
+                                                            List<dynamic> ratingUsers = data['isRated'];
+                                                            for (int j = 0; j < ratingUsers.length; j++) {
+                                                              if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
+                                                                isRated = true;
+                                                              }
+                                                            }
                                                             return Text(
                                                               data['name'] ?? '',
                                                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
@@ -291,6 +307,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   scrollDirection: Axis.vertical,
                                   shrinkWrap: true,
                                   itemBuilder: (BuildContext context, int index) {
+                                    double? rating;
+                                    bool? isRated = false;
                                     String? userTalkingTo;
                                     DateTime dateTime = allData[index]!['last_message_time'].toDate();
                                     String formattedTime = DateFormat.Hm().format(dateTime);
@@ -316,7 +334,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           onPressed: () {
                                             Navigator.push(
                                               context,
-                                              MaterialPageRoute(builder: (context) => ChatScreen(roomId: allData[index]?.id, otherUser: userTalkingTo)),
+                                              MaterialPageRoute(
+                                                  builder: (context) => ChatScreen(
+                                                        roomId: allData[index]?.id,
+                                                        otherUser: userTalkingTo,
+                                                        rating: rating,
+                                                        isRated: isRated,
+                                                      )),
                                             );
                                           },
                                           child: Padding(
@@ -343,6 +367,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                                 for (int i = 0; i < allData.length; i++) {
                                                                   data = allData[i];
                                                                   if (data['id'] == userTalkingTo) {
+                                                                    rating = data['review'].toDouble() ?? 0;
+                                                                    List<dynamic> ratingUsers = data['isRated'];
+                                                                    for (int j = 0; j < ratingUsers.length; j++) {
+                                                                      if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
+                                                                        isRated = true;
+                                                                      }
+                                                                    }
                                                                     return Text(
                                                                       data['name'] ?? '',
                                                                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),

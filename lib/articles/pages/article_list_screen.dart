@@ -216,7 +216,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                             padding: const EdgeInsets.all(16.0),
                             textStyle: const TextStyle(fontSize: 20),
                           ),
-                          onPressed: () async {
+                          onPressed: articlesBloc.state.results[index].writerId!= FirebaseAuth.instance.currentUser!.uid ? null :() async {
                             FocusManager.instance.primaryFocus?.unfocus();
                             final dynamic result = await Navigator.push(
                               context,

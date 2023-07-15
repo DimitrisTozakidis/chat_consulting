@@ -46,9 +46,9 @@ dependencies:
   build_runner: ^2.3.3
   http: ^0.13.5
   firebase_core: ^2.10.0
-  firebase_auth: ^4.5.0
+  firebase_auth: ^4.7.0
   top_snackbar_flutter: ^3.0.0+1
-  intl: ^0.17.0
+  intl: 0.18.0
   flutter_rating_bar: ^4.0.1
 
 

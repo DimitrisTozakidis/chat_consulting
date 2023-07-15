@@ -55,11 +55,33 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                     } catch (e) {
                       data = null;
                     }
+                    final snapshotForRating = await firestore.collection('Users').get();
+                    QueryDocumentSnapshot<Map<String, dynamic>>? dataForRating;
+                    try {
+                      dataForRating = snapshotForRating.docs.firstWhere((element) => element['id'].contains(widget.element.writerId));
+                    } catch (e) {
+                      dataForRating = null;
+                    }
+
+                    double review = dataForRating?['review'];
+                    bool isRated = false;
+                    List<dynamic> ratingUsers = dataForRating?['isRated'];
+                    for (int j = 0; j < ratingUsers.length; j++) {
+                      if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
+                        isRated = true;
+                      }
+                    }
                     String? roomId = data?.id;
                     FocusManager.instance.primaryFocus?.unfocus();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ChatScreen(roomId: roomId, otherUser: widget.element.writerId)),
+                      MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                                roomId: roomId,
+                                otherUser: widget.element.writerId,
+                                isRated: isRated,
+                                rating: review,
+                              )),
                     );
                   },
                   backgroundColor: Colors.green,

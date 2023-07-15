@@ -7,10 +7,12 @@ import 'package:intl/intl.dart';
 import '../models/message.dart';
 
 class ChatScreen extends StatefulWidget {
-  ChatScreen({Key? key, required this.roomId, required this.otherUser}) : super(key: key);
+  ChatScreen({Key? key, required this.roomId, required this.otherUser, this.rating, this.isRated}) : super(key: key);
 
   late final String? roomId;
   final String? otherUser;
+  final double? rating;
+  final bool? isRated;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -19,8 +21,10 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final ScrollController scrollController = ScrollController();
   final List<Message> messages = [];
-  bool? isRated= false;
-
+  late bool? isRated;
+  List<dynamic> ratingUsers = [];
+  double reviewNumber = 0;
+  late String otherUserId = '';
   final _textController = TextEditingController();
 
   @override
@@ -33,17 +37,33 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    final firestore = FirebaseFirestore.instance;
-    final roomRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomId);
+    isRated = widget.isRated;
+    updateRatings();
+  }
 
-    roomRef.get().then((DocumentSnapshot snapshot) {
-      if (snapshot.exists) {
-        isRated = (snapshot.data() as Map<String, dynamic>)['isRated'] as bool?;
+  void updateRatings() {
+    final firestore = FirebaseFirestore.instance;
+
+    Stream<QuerySnapshot> stream = getName();
+    stream.listen((snapshot) {
+      if (snapshot.docs.isNotEmpty) {
+        List<QueryDocumentSnapshot> allData = snapshot.docs;
+        QueryDocumentSnapshot? data;
+        for (int i = 0; i < allData.length; i++) {
+          data = allData[i];
+          if (data['id'] == widget.otherUser) {
+            // Process the data here
+            ratingUsers = data['isRated'];
+            otherUserId = data.id;
+            reviewNumber = data['review_number'].toDouble();
+            break; // Exit the loop if a matching data is found
+          }
+        }
       } else {
-        isRated = false;
+        print('No user found');
       }
-    }).catchError((error) {
-      // Error retrieving the document
+    }, onError: (error) {
+      print('Error: $error');
     });
   }
 
@@ -61,16 +81,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final firestore = FirebaseFirestore.instance;
     final roomRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomId);
-
-    roomRef.get().then((DocumentSnapshot snapshot) {
-      if (snapshot.exists) {
-        isRated = (snapshot.data() as Map<String, dynamic>)['isRated'] as bool?;
-      } else {
-        isRated = false;
-      }
-    }).catchError((error) {
-      // Error retrieving the document
-    });
     // 1
     return Scaffold(
       appBar: AppBar(
@@ -137,7 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const SizedBox(width: 8),
                 RatingBar.builder(
-                  initialRating: 0,
+                  initialRating: widget.rating ?? 0,
                   minRating: 1,
                   direction: Axis.horizontal,
                   allowHalfRating: true,
@@ -146,46 +156,21 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
                   itemBuilder: (context, _) => Icon(
                     Icons.star,
-                    color: Colors.amber,
+                    color: (isRated ?? false) ? Colors.blue : Colors.amber,
                   ),
                   onRatingUpdate: (rating) {
-                    isRated = true;
-                    Stream<QuerySnapshot> stream = getName();
-                    stream.listen((snapshot) {
-                      if (snapshot.docs.isNotEmpty) {
-                        List<QueryDocumentSnapshot> allData = snapshot.docs;
-                        QueryDocumentSnapshot? data;
-                        for (int i = 0; i < allData.length; i++) {
-                          data = allData[i];
-                          if (data['id'] == widget.otherUser) {
-                            // Process the data here
-                            int reviewNumber = data['review_number'];
-                            if (reviewNumber != 0) {
-                              double review = data['review'];
-                              double newRating = (review * reviewNumber + rating) / (reviewNumber + 1);
-                              firestore.collection('Users').doc(data.id).update({
-                                'review': newRating,
-                                'review_number': reviewNumber + 1,
-                              });
-                            } else {
-                              firestore.collection('Users').doc(data.id).update({
-                                'review': rating,
-                                'review_number': 1,
-                              });
-                            }
-                            break; // Exit the loop if a matching data is found
-                          }
-                        }
-                        firestore.collection('Rooms').doc(widget.roomId).update({'isRead': true});
-                        setState(() {});
-                      } else {
-                        print('No user found');
-                      }
-                    }, onError: (error) {
-                      print('Error: $error');
-                    });
+                    setState(() {
+                      isRated = true;
 
-                    ;
+                      ratingUsers.add(FirebaseAuth.instance.currentUser!.uid);
+                      double newRating = ((widget.rating ?? 0) * reviewNumber + rating) / (reviewNumber + 1);
+                      // Update the rating data in Firestore
+                      firestore.collection('Users').doc(otherUserId).update({
+                        'review': newRating,
+                        'review_number': reviewNumber + 1,
+                        'isRated': ratingUsers,
+                      });
+                    });
                   },
                 ),
               ],
