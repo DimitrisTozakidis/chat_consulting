@@ -9,7 +9,7 @@ import '../models/message.dart';
 class ChatScreen extends StatefulWidget {
   ChatScreen({Key? key, required this.roomId, required this.otherUser, this.rating, this.isRated}) : super(key: key);
 
-  late final String? roomId;
+  late String? roomId;
   final String? otherUser;
   final double? rating;
   final bool? isRated;
@@ -26,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   double reviewNumber = 0;
   late String otherUserId = '';
   final _textController = TextEditingController();
+  late String name= ' ';
 
   @override
   void dispose() {
@@ -97,6 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     for (int i = 0; i < allData.length; i++) {
                       data = allData[i];
                       if (data['id'] == widget.otherUser) {
+                        name= data['name'] ?? '';
                         return Text(
                           data['name'] ?? '',
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
@@ -239,7 +241,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     Container(
                                                         decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
                                                         height: MediaQuery.of(context).size.width * 1 / 8,
-                                                        width: MediaQuery.of(context).size.width * 1 / 8),
+                                                        width: MediaQuery.of(context).size.width * 1 / 8
+                                                    , child: Text(
+                                                      name[0],
+                                                      textAlign: TextAlign.center,
+                                                      style: TextStyle(fontSize: 37)
+                                                    ),),
                                                   SizedBox(width: ((index + 1) == messages.length || messages[index + 1].mine != false) ? 24 : 72),
                                                   Flexible(
                                                     child: Container(
@@ -316,7 +323,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.send),
-                        tooltip: 'Increase volume by 10',
                         onPressed: () {
                           if (_textController.text.toString() != '') {
                             if (widget.roomId != null) {

@@ -168,7 +168,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                     for (int i = 0; i < 2; i++) {
                                       if (allData[index]!['Users'][i] != FirebaseAuth.instance.currentUser!.uid) {
                                         userTalkingTo = allData[index]!['Users'][i];
-                                        print(userTalkingTo);
                                       }
                                     }
                                     return Container(
@@ -199,57 +198,58 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           },
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(vertical: 8.0),
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
-                                                  height: 56,
-                                                  width: 56,
-                                                ),
-                                                StreamBuilder<QuerySnapshot>(
-                                                  stream: getName(),
-                                                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                    if (snapshot.hasData) {
-                                                      if (snapshot.data!.docs.isNotEmpty) {
-                                                        List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
-                                                        QueryDocumentSnapshot? data;
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: getName(),
+                                              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                if (snapshot.hasData) {
+                                                  if (snapshot.data!.docs.isNotEmpty) {
+                                                    List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
+                                                    QueryDocumentSnapshot? data;
 
-                                                        for (int i = 0; i < allData.length; i++) {
-                                                          data = allData[i];
-                                                          if (data['id'] == userTalkingTo) {
-                                                            rating = data['review'].toDouble() ?? 0;
-                                                            List<dynamic> ratingUsers = data['isRated'];
-                                                            for (int j = 0; j < ratingUsers.length; j++) {
-                                                              if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
-                                                                isRated = true;
-                                                              }
-                                                            }
-                                                            return Text(
+                                                    for (int i = 0; i < allData.length; i++) {
+                                                      data = allData[i];
+                                                      if (data['id'] == userTalkingTo) {
+                                                        rating = data['review'].toDouble() ?? 0;
+                                                        List<dynamic> ratingUsers = data['isRated'];
+                                                        for (int j = 0; j < ratingUsers.length; j++) {
+                                                          if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
+                                                            isRated = true;
+                                                          }
+                                                        }
+                                                        return Column(
+                                                          children: [
+                                                            Container(
+                                                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
+                                                              height: 56,
+                                                              width: 56,
+                                                              child: Text(data['name'][0] ?? '', textAlign: TextAlign.center, style: TextStyle(fontSize: 42)),
+                                                            ),
+                                                            Text(
                                                               data['name'] ?? '',
                                                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
                                                               overflow: TextOverflow.ellipsis,
-                                                            );
-                                                          }
-                                                        }
-                                                        // Return a default widget if no matching data is found
-                                                        return Container();
-                                                      } else {
-                                                        return Center(
-                                                          child: Text('No name found'),
+                                                            ),
+                                                          ],
                                                         );
                                                       }
-                                                    } else if (snapshot.hasError) {
-                                                      return Center(
-                                                        child: Text('Error: ${snapshot.error}'),
-                                                      );
-                                                    } else {
-                                                      return Center(
-                                                        child: CircularProgressIndicator(color: Colors.blue),
-                                                      );
                                                     }
-                                                  },
-                                                )
-                                              ],
+                                                    // Return a default widget if no matching data is found
+                                                    return Container();
+                                                  } else {
+                                                    return Center(
+                                                      child: Text('No name found'),
+                                                    );
+                                                  }
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Text('Error: ${snapshot.error}'),
+                                                  );
+                                                } else {
+                                                  return Center(
+                                                    child: CircularProgressIndicator(color: Colors.blue),
+                                                  );
+                                                }
+                                              },
                                             ),
                                           )),
                                     );
@@ -345,81 +345,84 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           },
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(vertical: 8.0),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Container(
-                                                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
-                                                    height: MediaQuery.of(context).size.width * 1 / 7,
-                                                    width: MediaQuery.of(context).size.width * 1 / 7),
-                                                Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    SizedBox(
-                                                        width: MediaQuery.of(context).size.width / 2,
-                                                        child: StreamBuilder<QuerySnapshot>(
-                                                          stream: getName(),
-                                                          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                            if (snapshot.hasData) {
-                                                              if (snapshot.data!.docs.isNotEmpty) {
-                                                                List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
-                                                                QueryDocumentSnapshot? data;
-                                                                for (int i = 0; i < allData.length; i++) {
-                                                                  data = allData[i];
-                                                                  if (data['id'] == userTalkingTo) {
-                                                                    rating = data['review'].toDouble() ?? 0;
-                                                                    List<dynamic> ratingUsers = data['isRated'];
-                                                                    for (int j = 0; j < ratingUsers.length; j++) {
-                                                                      if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
-                                                                        isRated = true;
-                                                                      }
-                                                                    }
-                                                                    return Text(
-                                                                      data['name'] ?? '',
-                                                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: getName(),
+                                              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                if (snapshot.hasData) {
+                                                  if (snapshot.data!.docs.isNotEmpty) {
+                                                    List<QueryDocumentSnapshot> allDataUsers = snapshot.data!.docs;
+                                                    QueryDocumentSnapshot? data;
+                                                    for (int i = 0; i < allDataUsers.length; i++) {
+                                                      data = allDataUsers[i];
+                                                      if (data['id'] == userTalkingTo) {
+                                                        rating = data['review'].toDouble() ?? 0;
+                                                        List<dynamic> ratingUsers = data['isRated'];
+                                                        for (int j = 0; j < ratingUsers.length; j++) {
+                                                          if (ratingUsers[j] == FirebaseAuth.instance.currentUser!.uid) {
+                                                            isRated = true;
+                                                          }
+                                                        }
+                                                        return Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            Container(
+                                                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
+                                                              height: MediaQuery.of(context).size.width * 1 / 7,
+                                                              width: MediaQuery.of(context).size.width * 1 / 7,
+                                                              child: Text(data['name'][0] ?? '', textAlign: TextAlign.center, style: TextStyle(fontSize: 42)),
+                                                            ),
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                SizedBox(
+                                                                  width: MediaQuery.of(context).size.width / 2,
+                                                                  child: Text(
+                                                                    data['name'] ?? '',
+                                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 8,
+                                                                ),
+                                                                SizedBox(
+                                                                    width: MediaQuery.of(context).size.width / 3,
+                                                                    child: Text(
+                                                                      allData[index]!['last_message'],
+                                                                      softWrap: true,
+                                                                      style: TextStyle(fontSize: 15, color: Colors.grey),
                                                                       overflow: TextOverflow.ellipsis,
-                                                                    );
-                                                                  }
-                                                                }
-                                                                // Return a default widget if no matching data is found
-                                                                return Container();
-                                                              } else {
-                                                                return Center(
-                                                                  child: Text('No name found'),
-                                                                );
-                                                              }
-                                                            } else if (snapshot.hasError) {
-                                                              return Center(
-                                                                child: Text('Error: ${snapshot.error}'),
-                                                              );
-                                                            } else {
-                                                              return Center(
-                                                                child: CircularProgressIndicator(color: Colors.blue),
-                                                              );
-                                                            }
-                                                          },
-                                                        )),
-                                                    SizedBox(
-                                                      height: 8,
-                                                    ),
-                                                    SizedBox(
-                                                        width: MediaQuery.of(context).size.width / 3,
-                                                        child: Text(
-                                                          allData[index]!['last_message'],
-                                                          softWrap: true,
-                                                          style: TextStyle(fontSize: 15, color: Colors.grey),
-                                                          overflow: TextOverflow.ellipsis,
-                                                          maxLines: 2,
-                                                        )),
-                                                  ],
-                                                ),
-                                                Align(
-                                                    alignment: Alignment.topRight,
-                                                    child: Text(
-                                                      formattedTime,
-                                                      style: TextStyle(color: Colors.grey),
-                                                    ))
-                                              ],
+                                                                      maxLines: 2,
+                                                                    )),
+                                                              ],
+                                                            ),
+                                                            Align(
+                                                                alignment: Alignment.topRight,
+                                                                child: Text(
+                                                                  formattedTime,
+                                                                  style: TextStyle(color: Colors.grey),
+                                                                ))
+                                                          ],
+                                                        );
+                                                      }
+                                                    }
+                                                    // Return a default widget if no matching data is found
+                                                    return Container();
+                                                  } else {
+                                                    return Center(
+                                                      child: Text('No name found'),
+                                                    );
+                                                  }
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Text('Error: ${snapshot.error}'),
+                                                  );
+                                                } else {
+                                                  return Center(
+                                                    child: CircularProgressIndicator(color: Colors.blue),
+                                                  );
+                                                }
+                                              },
                                             ),
                                           )),
                                     );

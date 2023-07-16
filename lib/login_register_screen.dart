@@ -82,7 +82,10 @@ class _LoginRegisterScreenState extends State<LoginRegisterScreen> {
         'isRated': []
       };
       firestore.collection('Users').add(data);
-
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MessagesScreen()),
+      );
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
