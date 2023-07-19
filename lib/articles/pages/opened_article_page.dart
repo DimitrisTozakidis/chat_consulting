@@ -23,11 +23,18 @@ class OpenedArticlePage extends StatefulWidget {
 class _OpenedArticlePageState extends State<OpenedArticlePage> {
   late final TagsBloc tagsBloc = context.read<TagsBloc>();
   late final ArticlesBloc articlesBloc = context.read<ArticlesBloc>();
+  late final String image;
 
   @override
   void initState() {
     super.initState();
     tagsBloc.initialize();
+
+    for (int i = 0; i < tagsBloc.state.tags.length; i++) {
+      if (widget.element.tags[0] == tagsBloc.state.tags[i].id) {
+        image = tagsBloc.state.tags[i].image;
+      }
+    }
   }
 
   @override
@@ -101,7 +108,7 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                         decoration: BoxDecoration(
                           boxShadow: [BoxShadow(color: Colors.grey.shade600, spreadRadius: 30, blurRadius: 20)],
                           borderRadius: const BorderRadius.all(Radius.circular(18.0)),
-                          image: DecorationImage(image: NetworkImage("https://picsum.photos/2000/2000?random=2"), fit: BoxFit.cover),
+                          image: DecorationImage(image: AssetImage(image), fit: BoxFit.cover),
                         ),
                         //child: const RiveAnimation.asset("assets/vehicles.riv", fit: BoxFit.cover),
                       ),
@@ -145,42 +152,44 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                               ),
                                             ];
                                           },
-                                          onSelected: (value) async {
-                                            if (value == 0) {
-                                              final dynamic result = await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => const AddArticlePage()),
-                                              );
+                                          onSelected: FirebaseAuth.instance.currentUser!.uid != widget.element.writerId
+                                              ? null
+                                              : (value) async {
+                                                  if (value == 0) {
+                                                    final dynamic result = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(builder: (context) => const AddArticlePage()),
+                                                    );
 
-                                              if (result is Article) {
-                                                articlesBloc.addNewArticle(result);
-                                                setState(() {});
-                                              }
-                                            } else if (value == 1) {
-                                              setState(() {});
-                                              final dynamic result = await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => AddArticlePage(article: widget.element)),
-                                              ) as Article;
-                                              setState(() {});
+                                                    if (result is Article) {
+                                                      articlesBloc.addNewArticle(result);
+                                                      setState(() {});
+                                                    }
+                                                  } else if (value == 1) {
+                                                    setState(() {});
+                                                    final dynamic result = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(builder: (context) => AddArticlePage(article: widget.element)),
+                                                    ) as Article;
+                                                    setState(() {});
 
-                                              if (result is Article) {
-                                                articlesBloc.updateArticle(result);
-                                                setState(() {});
-                                              }
-                                              setState(() {});
-                                            } else if (value == 2) {
-                                              CommonUtilities.openDeleteDialog(context, widget.element, () {
-                                                articlesBloc.deleteArticle(widget.element);
-                                                setState(() {});
-                                                Navigator.pop(context);
-                                                setState(() {});
-                                                Navigator.pop(context);
-                                                setState(() {});
-                                              });
-                                            }
-                                            setState(() {});
-                                          }),
+                                                    if (result is Article) {
+                                                      articlesBloc.updateArticle(result);
+                                                      setState(() {});
+                                                    }
+                                                    setState(() {});
+                                                  } else if (value == 2) {
+                                                    CommonUtilities.openDeleteDialog(context, widget.element, () {
+                                                      articlesBloc.deleteArticle(widget.element);
+                                                      setState(() {});
+                                                      Navigator.pop(context);
+                                                      setState(() {});
+                                                      Navigator.pop(context);
+                                                      setState(() {});
+                                                    });
+                                                  }
+                                                  setState(() {});
+                                                }),
                                     ],
                                   ),
                                 ],

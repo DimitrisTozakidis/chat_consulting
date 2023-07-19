@@ -15,6 +15,7 @@ class TagsBloc extends Cubit<TagState> {
   Future<void> getTags() async {
     final List<Tag> tags = [];
     final List<Color> colors = [Colors.red, Colors.blue, Colors.green, Colors.deepPurple, Colors.yellow, Colors.pinkAccent, Colors.brown];
+    final List<String> images = ['assets/sports.jpg', 'assets/cooking.jpg', 'assets/work.jpg', 'assets/anxiety.jpg', 'assets/relationships.jpg', 'assets/exams.jpg', 'assets/fashion.png'];
     final firestore = FirebaseFirestore.instance;
 
     try {
@@ -22,7 +23,7 @@ class TagsBloc extends Cubit<TagState> {
       if (snapshot.docs.isNotEmpty) {
         final List<QueryDocumentSnapshot> allData = snapshot.docs.toList();
         for (int i = 0; i < allData.length; i++) {
-          Tag test = Tag(title: allData[i]['name'], color: colors[i], id: allData[i]['id']);
+          Tag test = Tag(title: allData[i]['name'], color: colors[i], id: allData[i]['id'], image: images[i]);
           tags.add(test);
         }
         emit(state.copyWith(tags: tags));

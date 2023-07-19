@@ -145,6 +145,12 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
           shrinkWrap: true,
           itemCount: articlesBloc.state.results.length,
           itemBuilder: (BuildContext context, int index) {
+            String image='';
+            for (int i = 0; i < tagsBloc.state.tags.length; i++) {
+              if (articlesBloc.state.results[index].tags[0] == tagsBloc.state.tags[i].id) {
+                image = tagsBloc.state.tags[i].image;
+              }
+            }
             final List<Widget> articleList = [];
             Color? mainColor = articlesBloc.state.results[index].isRead == true ? Colors.orange[500] : Colors.orange[900];
             articleList.add(
@@ -180,7 +186,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Image.network("https://picsum.photos/2000/2000?random=2", scale: 40.0),
+                          SizedBox(height:50, width: 50, child: Image.asset(image)),
                           Flexible(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
