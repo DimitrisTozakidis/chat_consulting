@@ -10,5 +10,5 @@ class Message {
 
   String text;
   bool mine;
-  String time;
+  DateTime time;
 }

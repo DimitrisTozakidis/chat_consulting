@@ -26,7 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   double reviewNumber = 0;
   late String otherUserId = '';
   final _textController = TextEditingController();
-  late String name= ' ';
+  late String name = ' ';
 
   @override
   void dispose() {
@@ -98,7 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     for (int i = 0; i < allData.length; i++) {
                       data = allData[i];
                       if (data['id'] == widget.otherUser) {
-                        name= data['name'] ?? '';
+                        name = data['name'] ?? '';
                         return Text(
                           data['name'] ?? '',
                           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
@@ -200,13 +200,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                 //   roomId = data.id;
                                 // });
                                 for (int i = 0; i < allData.length; i++) {
-                                  DateTime dateTime = allData[i]!['datetime'].toDate();
-                                  String formattedTime = DateFormat.Hm().format(dateTime);
+                                  // DateTime dateTime = allData[i]!['datetime'].toDate();
+                                  // String formattedTime = DateFormat.Hm().format(dateTime);
                                   messages.add(
                                     Message(
                                       text: allData[i]!['message'],
                                       mine: allData[i]!['sent_by'] == FirebaseAuth.instance.currentUser!.uid,
-                                      time: formattedTime,
+                                      time: allData[i]!['datetime'].toDate(),
                                     ),
                                   );
                                 }
@@ -229,7 +229,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     width: MediaQuery.of(context).size.width / 5,
                                                   ),
                                                   Text(
-                                                    messages[index].time,
+                                                    DateFormat.Hm().format(messages[index].time),
                                                     style: TextStyle(fontSize: 15),
                                                   ),
                                                 ],
@@ -239,14 +239,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                                 children: [
                                                   if ((index + 1) == messages.length || messages[index + 1].mine != false)
                                                     Container(
-                                                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
-                                                        height: MediaQuery.of(context).size.width * 1 / 8,
-                                                        width: MediaQuery.of(context).size.width * 1 / 8
-                                                    , child: Text(
-                                                      name[0],
-                                                      textAlign: TextAlign.center,
-                                                      style: TextStyle(fontSize: 37)
-                                                    ),),
+                                                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
+                                                      height: MediaQuery.of(context).size.width * 1 / 8,
+                                                      width: MediaQuery.of(context).size.width * 1 / 8,
+                                                      child: Text(name[0], textAlign: TextAlign.center, style: TextStyle(fontSize: 37)),
+                                                    ),
                                                   SizedBox(width: ((index + 1) == messages.length || messages[index + 1].mine != false) ? 24 : 72),
                                                   Flexible(
                                                     child: Container(

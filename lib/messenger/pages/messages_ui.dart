@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:untitled3/messenger/pages/chat_screen.dart';
-import 'package:flutterfire_ui/auth.dart';
+import 'package:untitled3/messenger/pages/profile_screen.dart';
 import '../../articles/pages/article_list_screen.dart';
 import '../../utilities/snack_bar.dart';
 
@@ -100,7 +100,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 leading: Icon(Icons.person),
                 title: Text('Profile'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreenLocal()));
                 }),
             ListTile(
               leading: Icon(Icons.article),

@@ -37,6 +37,11 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
     }
   }
 
+  Stream<QuerySnapshot> getName() {
+    final firestore = FirebaseFirestore.instance;
+    return firestore.collection('Users').snapshots();
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -199,15 +204,48 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                 child: Column(
                                   children: [
                                     Row(
-                                      children: const [
+                                      children: [
                                         Padding(
                                           padding: EdgeInsets.only(left: 18.0, bottom: 8),
                                           child: CircleAvatar(
                                             backgroundColor: Colors.white,
                                             radius: 30,
-                                            child: CircleAvatar(
-                                              radius: 27,
-                                              backgroundImage: AssetImage("assets/DimitrisTozakidis.jpg"),
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: getName(),
+                                              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                if (snapshot.hasData) {
+                                                  if (snapshot.data!.docs.isNotEmpty) {
+                                                    List<QueryDocumentSnapshot> allData = snapshot.data!.docs;
+                                                    QueryDocumentSnapshot? data;
+
+                                                    for (int i = 0; i < allData.length; i++) {
+                                                      data = allData[i];
+                                                      if (data['id'] == widget.element.writerId) {
+                                                        return Container(
+                                                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(90), color: Colors.red),
+                                                          height: 50,
+                                                          width: 50,
+                                                          child: Text(data['name'][0] ?? '', textAlign: TextAlign.center, style: TextStyle(fontSize: 42)),
+                                                        );
+                                                      }
+                                                    }
+                                                    // Return a default widget if no matching data is found
+                                                    return Container();
+                                                  } else {
+                                                    return Center(
+                                                      child: Text('No name found'),
+                                                    );
+                                                  }
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Text('Error: ${snapshot.error}'),
+                                                  );
+                                                } else {
+                                                  return Center(
+                                                    child: CircularProgressIndicator(color: Colors.blue),
+                                                  );
+                                                }
+                                              },
                                             ),
                                           ),
                                         ),
@@ -261,7 +299,7 @@ class _OpenedArticlePageState extends State<OpenedArticlePage> {
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 40,
+                                      fontSize: 38,
                                     )),
                               ),
                               Padding(
