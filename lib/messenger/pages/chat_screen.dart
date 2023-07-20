@@ -45,7 +45,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void updateRatings() {
-    final firestore = FirebaseFirestore.instance;
 
     Stream<QuerySnapshot> stream = getName();
     stream.listen((snapshot) {
@@ -83,7 +82,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final firestore = FirebaseFirestore.instance;
-    final roomRef = FirebaseFirestore.instance.collection('Rooms').doc(widget.roomId);
     // 1
     return Scaffold(
       appBar: AppBar(
