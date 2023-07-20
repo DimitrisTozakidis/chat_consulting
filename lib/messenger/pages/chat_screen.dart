@@ -27,6 +27,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late String otherUserId = '';
   final _textController = TextEditingController();
   late String name = ' ';
+  final dateFormat = DateFormat('dd');
+  final dayFormat = DateFormat('EEEE');
 
   @override
   void dispose() {
@@ -222,6 +224,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                         return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            if (index == 0 || dateFormat.format(messages[index].time) != dateFormat.format(messages[index - 1].time))
+                                              Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: MediaQuery.of(context).size.width / 5,
+                                                  ),
+                                                  Text(
+                                                    dayFormat.format(messages[index].time) + ' ' + dateFormat.format(messages[index].time),
+                                                    style: TextStyle(fontSize: 15),
+                                                  ),
+                                                ],
+                                              ),
                                             if (index == 0 || messages[index].time != messages[index - 1].time)
                                               Row(
                                                 children: [
